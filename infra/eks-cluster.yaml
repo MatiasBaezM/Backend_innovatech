@@ -15,9 +15,6 @@ vpc:
     public:
       us-east-1a: { id: subnet-07cd81458d452462f }
       us-east-1b: { id: subnet-011fd192a2e7971fd }
-      us-east-1c: { id: subnet-08cd7c589eea59e5d }
-      us-east-1d: { id: subnet-0ea4b1ece68bba377 }
-      us-east-1f: { id: subnet-0d3985aa2a3becac4 }
 
 managedNodeGroups:
   - name: ng-1

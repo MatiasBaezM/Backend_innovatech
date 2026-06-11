@@ -5,7 +5,7 @@
 #   cd infra/ecr
 #   ./01-create-repos.ps1
 
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Continue"
 
 $REGION = "us-east-1"
 
@@ -23,10 +23,10 @@ $repos = @(
 
 foreach ($repo in $repos) {
     Write-Host "`n== Repositorio: $repo =="
-    try {
-        aws ecr describe-repositories --repository-names $repo --region $REGION | Out-Null
+    aws ecr describe-repositories --repository-names $repo --region $REGION 2>$null | Out-Null
+    if ($LASTEXITCODE -eq 0) {
         Write-Host "Ya existe, se omite."
-    } catch {
+    } else {
         aws ecr create-repository --repository-name $repo --region $REGION | Out-Null
         Write-Host "Creado."
     }

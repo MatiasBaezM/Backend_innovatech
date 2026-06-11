@@ -1,9 +1,8 @@
-# FASE 2.2 - Build y push de las imagenes Docker a Amazon ECR
+# FASE 2.2b - Build y push de las imagenes restantes (ms-api-gateway ya se subio)
 #
-# Requisitos: Docker Desktop corriendo, AWS CLI v2 configurado y repos ECR
-# ya creados (ver 01-create-repos.ps1).
-# Uso (desde cualquier ubicacion, el script resuelve la raiz del repo solo):
-#   ./infra/ecr/02-build-and-push.ps1
+# Reintento tras un build colgado en mvn dependency:go-offline (red BuildKit).
+# Uso:
+#   ./infra/ecr/02b-build-and-push-remaining.ps1
 
 $ErrorActionPreference = "Continue"
 
@@ -13,14 +12,12 @@ $REGISTRY = "$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com"
 
 Write-Host "Registry: $REGISTRY"
 
-# Login de Docker contra ECR (expira cada 12 horas)
 aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $REGISTRY
 if ($LASTEXITCODE -ne 0) { throw "docker login fallo (exit $LASTEXITCODE)" }
 
 $projectRoot = Resolve-Path (Join-Path $PSScriptRoot "..\..")
 
 $services = @(
-    @{ Dir = "ms-api_gateway";          Repo = "innovatech/ms-api-gateway" },
     @{ Dir = "ms-autenticacion";        Repo = "innovatech/ms-autenticacion" },
     @{ Dir = "ms-recursos_colaboraciones"; Repo = "innovatech/ms-recursos-colaboraciones" },
     @{ Dir = "ms-gestion_proyectos";    Repo = "innovatech/ms-gestion-proyectos" },
@@ -39,4 +36,4 @@ foreach ($svc in $services) {
 }
 
 Write-Host "`nListo. Verifica en ECR:"
-Write-Host "  aws ecr list-images --repository-name innovatech/ms-api-gateway --region $REGION"
+Write-Host "  aws ecr list-images --repository-name innovatech/ms-autenticacion --region $REGION"

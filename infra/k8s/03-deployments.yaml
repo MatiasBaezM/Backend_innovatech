@@ -1,6 +1,3 @@
-# Reemplaza <ACCOUNT_ID> en todas las imagenes (cuenta usada en
-# infra/eks-cluster.yaml: 147318157574) tras subir las imagenes con
-# infra/ecr/02-build-and-push.ps1.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -20,7 +17,7 @@ spec:
     spec:
       containers:
         - name: ms-autenticacion
-          image: <ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/innovatech/ms-autenticacion:latest
+          image: 147318157574.dkr.ecr.us-east-1.amazonaws.com/innovatech/ms-autenticacion:latest
           ports:
             - containerPort: 8081
           envFrom:
@@ -73,7 +70,7 @@ spec:
     spec:
       containers:
         - name: ms-recursos-colaboraciones
-          image: <ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/innovatech/ms-recursos-colaboraciones:latest
+          image: 147318157574.dkr.ecr.us-east-1.amazonaws.com/innovatech/ms-recursos-colaboraciones:latest
           ports:
             - containerPort: 8082
           envFrom:
@@ -126,7 +123,7 @@ spec:
     spec:
       containers:
         - name: ms-gestion-proyectos
-          image: <ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/innovatech/ms-gestion-proyectos:latest
+          image: 147318157574.dkr.ecr.us-east-1.amazonaws.com/innovatech/ms-gestion-proyectos:latest
           ports:
             - containerPort: 8083
           envFrom:
@@ -179,7 +176,7 @@ spec:
     spec:
       containers:
         - name: ms-analiticas
-          image: <ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/innovatech/ms-analiticas:latest
+          image: 147318157574.dkr.ecr.us-east-1.amazonaws.com/innovatech/ms-analiticas:latest
           ports:
             - containerPort: 8084
           envFrom:
@@ -232,7 +229,7 @@ spec:
     spec:
       containers:
         - name: ms-api-gateway
-          image: <ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/innovatech/ms-api-gateway:latest
+          image: 147318157574.dkr.ecr.us-east-1.amazonaws.com/innovatech/ms-api-gateway:latest
           ports:
             - containerPort: 8080
           envFrom:
