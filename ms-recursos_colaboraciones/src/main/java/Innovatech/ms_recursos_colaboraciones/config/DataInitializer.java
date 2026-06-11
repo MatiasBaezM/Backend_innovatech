@@ -1,6 +1,8 @@
 package Innovatech.ms_recursos_colaboraciones.config;
 
+import Innovatech.ms_recursos_colaboraciones.model.Habilidad;
 import Innovatech.ms_recursos_colaboraciones.model.Trabajador;
+import Innovatech.ms_recursos_colaboraciones.repository.HabilidadRepository;
 import Innovatech.ms_recursos_colaboraciones.repository.TrabajadorRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -12,7 +14,7 @@ import java.util.Arrays;
 public class DataInitializer {
 
     @Bean
-    public CommandLineRunner initData(TrabajadorRepository trabajadorRepository) {
+    public CommandLineRunner initData(TrabajadorRepository trabajadorRepository, HabilidadRepository habilidadRepository) {
         return args -> {
             if (trabajadorRepository.count() == 0) {
                 Trabajador t1 = Trabajador.builder()
@@ -34,6 +36,19 @@ public class DataInitializer {
                         .build();
 
                 trabajadorRepository.saveAll(Arrays.asList(t1, t2));
+            }
+
+            if (habilidadRepository.count() == 0) {
+                habilidadRepository.saveAll(Arrays.asList(
+                        Habilidad.builder().nombre("Desarrollador Backend").color("#6366f1").build(),
+                        Habilidad.builder().nombre("Desarrollador Frontend").color("#0ea5e9").build(),
+                        Habilidad.builder().nombre("DBA").color("#10b981").build(),
+                        Habilidad.builder().nombre("Analista QA").color("#f59e0b").build(),
+                        Habilidad.builder().nombre("Diseñador UX/UI").color("#ec4899").build(),
+                        Habilidad.builder().nombre("DevOps").color("#ef4444").build(),
+                        Habilidad.builder().nombre("Scrum Master").color("#8b5cf6").build(),
+                        Habilidad.builder().nombre("Analista de Negocio").color("#14b8a6").build()
+                ));
             }
         };
     }

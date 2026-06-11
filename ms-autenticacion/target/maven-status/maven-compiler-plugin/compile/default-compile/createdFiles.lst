@@ -1,11 +1,11 @@
 Innovatech\ms_autenticacion\security\JwtUtil.class
 Innovatech\ms_autenticacion\repository\UsuarioRepository.class
+Innovatech\ms_autenticacion\config\DataInitializer.class
+Innovatech\ms_autenticacion\controller\AuthController.class
+Innovatech\ms_autenticacion\model\Usuario.class
 Innovatech\ms_autenticacion\model\AuthRequest.class
 Innovatech\ms_autenticacion\MsAutenticacionApplication.class
 Innovatech\ms_autenticacion\security\SecurityConfig.class
 Innovatech\ms_autenticacion\model\Usuario$UsuarioBuilder.class
-Innovatech\ms_autenticacion\config\DataInitializer.class
 Innovatech\ms_autenticacion\model\AuthResponse.class
-Innovatech\ms_autenticacion\controller\AuthController.class
-Innovatech\ms_autenticacion\model\Usuario.class
 Innovatech\ms_autenticacion\service\AuthService.class

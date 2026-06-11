@@ -6,17 +6,6 @@ spring:
     name: ms-api-gateway
   cloud:
     gateway:
-      globalcors:
-        corsConfigurations:
-          '[/**]':
-            allowedOrigins: "http://localhost:5173" # O el puerto que use tu frontend
-            allowedMethods:
-              - GET
-              - POST
-              - PUT
-              - DELETE
-              - OPTIONS
-            allowedHeaders: "*"
       routes:
         - id: auth-service
           uri: ${AUTH_SERVICE_URL:http://localhost:8081}
@@ -31,7 +20,7 @@ spring:
         - id: recursos-colaboraciones-service
           uri: ${RECURSOS_COLABORACIONES_SERVICE_URL:http://localhost:8082}
           predicates:
-            - Path=/api/trabajadores/**, /api/asignaciones/**, /api/equipos/**
+            - Path=/api/trabajadores/**, /api/asignaciones/**, /api/equipos/**, /api/habilidades/**
           filters:
             - name: CircuitBreaker
               args:

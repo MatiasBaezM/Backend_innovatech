@@ -6,6 +6,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -28,4 +32,16 @@ public class Usuario {
     private String clave;
 
     private String rol;
+
+    @Column(unique = true)
+    private String correo;
+
+    @ElementCollection
+    @CollectionTable(name = "usuario_habilidad", joinColumns = @JoinColumn(name = "usuario_id"))
+    @Column(name = "habilidad_id")
+    @Builder.Default
+    private Set<Long> habilidadIds = new HashSet<>();
+
+    @Transient
+    private List<HabilidadInfo> habilidades;
 }

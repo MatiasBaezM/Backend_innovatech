@@ -1,0 +1,259 @@
+# Reemplaza <ACCOUNT_ID> en todas las imagenes (cuenta usada en
+# infra/eks-cluster.yaml: 147318157574) tras subir las imagenes con
+# infra/ecr/02-build-and-push.ps1.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ms-autenticacion
+  namespace: innovatech
+  labels:
+    app: ms-autenticacion
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ms-autenticacion
+  template:
+    metadata:
+      labels:
+        app: ms-autenticacion
+    spec:
+      containers:
+        - name: ms-autenticacion
+          image: <ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/innovatech/ms-autenticacion:latest
+          ports:
+            - containerPort: 8081
+          envFrom:
+            - configMapRef:
+                name: innovatech-config
+            - secretRef:
+                name: innovatech-secret
+          env:
+            - name: SPRING_DATASOURCE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: innovatech-config
+                  key: AUTENTICACION_DB_URL
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8081
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8081
+            initialDelaySeconds: 60
+            periodSeconds: 15
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ms-recursos-colaboraciones
+  namespace: innovatech
+  labels:
+    app: ms-recursos-colaboraciones
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ms-recursos-colaboraciones
+  template:
+    metadata:
+      labels:
+        app: ms-recursos-colaboraciones
+    spec:
+      containers:
+        - name: ms-recursos-colaboraciones
+          image: <ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/innovatech/ms-recursos-colaboraciones:latest
+          ports:
+            - containerPort: 8082
+          envFrom:
+            - configMapRef:
+                name: innovatech-config
+            - secretRef:
+                name: innovatech-secret
+          env:
+            - name: SPRING_DATASOURCE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: innovatech-config
+                  key: RECURSOS_DB_URL
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8082
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8082
+            initialDelaySeconds: 60
+            periodSeconds: 15
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ms-gestion-proyectos
+  namespace: innovatech
+  labels:
+    app: ms-gestion-proyectos
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ms-gestion-proyectos
+  template:
+    metadata:
+      labels:
+        app: ms-gestion-proyectos
+    spec:
+      containers:
+        - name: ms-gestion-proyectos
+          image: <ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/innovatech/ms-gestion-proyectos:latest
+          ports:
+            - containerPort: 8083
+          envFrom:
+            - configMapRef:
+                name: innovatech-config
+            - secretRef:
+                name: innovatech-secret
+          env:
+            - name: SPRING_DATASOURCE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: innovatech-config
+                  key: GESTION_PROYECTOS_DB_URL
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8083
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8083
+            initialDelaySeconds: 60
+            periodSeconds: 15
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ms-analiticas
+  namespace: innovatech
+  labels:
+    app: ms-analiticas
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ms-analiticas
+  template:
+    metadata:
+      labels:
+        app: ms-analiticas
+    spec:
+      containers:
+        - name: ms-analiticas
+          image: <ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/innovatech/ms-analiticas:latest
+          ports:
+            - containerPort: 8084
+          envFrom:
+            - configMapRef:
+                name: innovatech-config
+            - secretRef:
+                name: innovatech-secret
+          env:
+            - name: SPRING_DATASOURCE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: innovatech-config
+                  key: ANALITICAS_DB_URL
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8084
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8084
+            initialDelaySeconds: 60
+            periodSeconds: 15
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ms-api-gateway
+  namespace: innovatech
+  labels:
+    app: ms-api-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ms-api-gateway
+  template:
+    metadata:
+      labels:
+        app: ms-api-gateway
+    spec:
+      containers:
+        - name: ms-api-gateway
+          image: <ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/innovatech/ms-api-gateway:latest
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: innovatech-config
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 40
+            periodSeconds: 15

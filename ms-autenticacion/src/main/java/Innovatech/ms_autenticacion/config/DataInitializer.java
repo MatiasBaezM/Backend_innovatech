@@ -22,7 +22,7 @@ public class DataInitializer implements CommandLineRunner {
                     .rut("11.111.111-1")
                     .nombre("Administrador")
                     .clave("admin123")
-                    .rol("ADMIN")
+                    .rol("ADMINISTRADOR")
                     .build();
             usuarioRepository.save(admin);
             System.out.println(

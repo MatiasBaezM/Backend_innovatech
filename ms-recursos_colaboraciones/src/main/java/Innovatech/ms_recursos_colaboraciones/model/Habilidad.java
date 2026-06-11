@@ -1,5 +1,6 @@
 package Innovatech.ms_recursos_colaboraciones.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,6 +27,10 @@ public class Habilidad {
 
     private String descripcion;
 
+    @Column(nullable = false)
+    private String color; // hex, ej: #6366f1
+
+    @JsonIgnore
     @ManyToMany(mappedBy = "habilidades")
     private Set<Trabajador> trabajadores = new HashSet<>();
 }

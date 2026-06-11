@@ -25,15 +25,19 @@ public class CorsConfig {
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration corsConfig = new CorsConfiguration();
 
-        // Soporta múltiples orígenes separados por coma
         Arrays.stream(allowedOrigins.split(","))
                 .map(String::trim)
                 .forEach(corsConfig::addAllowedOrigin);
 
         corsConfig.setMaxAge(3600L);
-        corsConfig.addAllowedMethod("*");
-        corsConfig.addAllowedHeader("*");
-        corsConfig.setAllowCredentials(true);
+        corsConfig.addAllowedMethod("GET");
+        corsConfig.addAllowedMethod("POST");
+        corsConfig.addAllowedMethod("PUT");
+        corsConfig.addAllowedMethod("DELETE");
+        corsConfig.addAllowedMethod("OPTIONS");
+        corsConfig.addAllowedHeader("Content-Type");
+        corsConfig.addAllowedHeader("Authorization");
+        corsConfig.addAllowedHeader("Accept");
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", corsConfig);
