@@ -1,0 +1,90 @@
+# ─── API Gateway (PÚBLICO - LoadBalancer) ────────────────────
+# Este es el ÚNICO servicio expuesto a internet.
+# Kubernetes creará un AWS Load Balancer automáticamente.
+apiVersion: v1
+kind: Service
+metadata:
+  name: ms-api-gateway
+  namespace: innovatech
+  labels:
+    app: ms-api-gateway
+spec:
+  type: LoadBalancer   # ← Esto crea un ALB público en AWS
+  selector:
+    app: ms-api-gateway
+  ports:
+    - protocol: TCP
+      port: 80           # Puerto externo (la URL pública)
+      targetPort: 8080    # Puerto interno del contenedor
+
+---
+# ─── Autenticación (INTERNO) ─────────────────────────────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: ms-autenticacion
+  namespace: innovatech
+  labels:
+    app: ms-autenticacion
+spec:
+  type: ClusterIP   # ← Solo accesible dentro del clúster
+  selector:
+    app: ms-autenticacion
+  ports:
+    - protocol: TCP
+      port: 8081
+      targetPort: 8081
+
+---
+# ─── Recursos y Colaboraciones (INTERNO) ─────────────────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: ms-recursos-colaboraciones
+  namespace: innovatech
+  labels:
+    app: ms-recursos-colaboraciones
+spec:
+  type: ClusterIP
+  selector:
+    app: ms-recursos-colaboraciones
+  ports:
+    - protocol: TCP
+      port: 8082
+      targetPort: 8082
+
+---
+# ─── Gestión de Proyectos (INTERNO) ──────────────────────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: ms-gestion-proyectos
+  namespace: innovatech
+  labels:
+    app: ms-gestion-proyectos
+spec:
+  type: ClusterIP
+  selector:
+    app: ms-gestion-proyectos
+  ports:
+    - protocol: TCP
+      port: 8083
+      targetPort: 8083
+
+---
+# ─── Analíticas (INTERNO) ────────────────────────────────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: ms-analiticas
+  namespace: innovatech
+  labels:
+    app: ms-analiticas
+spec:
+  type: ClusterIP
+  selector:
+    app: ms-analiticas
+  ports:
+    - protocol: TCP
+      port: 8084
+      targetPort: 8084

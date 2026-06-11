@@ -1,0 +1,198 @@
+{
+	"info": {
+		"_postman_id": "cff78a82-a93f-4fb7-94c7-8e96fb46cd67",
+		"name": "Innovatech Solutions - Microservicios",
+		"description": "Colección de peticiones para probar el API Gateway y los microservicios de Autenticación y Recursos & Colaboraciones.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Microservicio Autenticación",
+			"item": [
+				{
+					"name": "A) Registrar Usuario",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"rut\": \"12345678-9\",\n    \"nombre\": \"Juan Perez\",\n    \"rol\": \"USER\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/auth/register",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "B) Iniciar Sesión (Login)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"rut\": \"12345678-9\",\n    \"nombre\": \"Juan Perez\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/auth/login",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "C) Validar Token",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/auth/validate",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"auth",
+								"validate"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. Microservicio Recursos y Colaboraciones",
+			"item": [
+				{
+					"name": "D) Crear Trabajador",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"rut\": \"12345678-9\",\n    \"nombre\": \"Juan Perez\",\n    \"email\": \"juan.perez@innovatech.com\",\n    \"telefono\": \"+56912345678\",\n    \"cargo\": \"Desarrollador Backend\",\n    \"departamento\": \"Ingeniería\",\n    \"tarifaHora\": 25.5\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/trabajadores",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"trabajadores"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "E) Listar Trabajadores",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/trabajadores",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"trabajadores"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "F) Asignar Capacidad a Proyecto",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"trabajador\": {\n        \"id\": 1\n    },\n    \"proyectoId\": 100,\n    \"horasAsignadas\": 30,\n    \"fechaInicio\": \"2026-05-10\",\n    \"fechaFin\": \"2026-11-30\",\n    \"rolEnProyecto\": \"Tech Lead\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/asignaciones",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"asignaciones"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "G) Ver Asignaciones por Trabajador",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/asignaciones/trabajador/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"asignaciones",
+								"trabajador",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

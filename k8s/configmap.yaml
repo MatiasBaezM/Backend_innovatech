@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: innovatech-config
+  namespace: innovatech
+data:
+  # ============================================================
+  # INSTRUCCIONES:
+  # Reemplaza <TU_RDS_ENDPOINT> con el endpoint real de tu RDS.
+  # Ejemplo: innovatech-mysql.cxxxxxxxxxxxx.us-east-1.rds.amazonaws.com
+  # ============================================================
+  SPRING_DATASOURCE_URL: "jdbc:mysql://<TU_RDS_ENDPOINT>:3306/innovatech_db?createDatabaseIfNotExist=true"
+  SPRING_DATASOURCE_USERNAME: "admin"
+
+  # URLs internas entre microservicios (Kubernetes DNS)
+  AUTH_SERVICE_URL: "http://ms-autenticacion:8081"
+  RECURSOS_COLABORACIONES_SERVICE_URL: "http://ms-recursos-colaboraciones:8082"
+  GESTION_PROYECTOS_SERVICE_URL: "http://ms-gestion-proyectos:8083"
+  ANALITICAS_SERVICE_URL: "http://ms-analiticas:8084"
+
+  # CORS - Reemplaza con el dominio real de tu frontend
+  CORS_ALLOWED-ORIGINS: "http://localhost:5173"

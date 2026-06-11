@@ -1,0 +1,25 @@
+--- VALORES DE DESPLIEGUE AWS ---
+Fecha: 2026-05-13
+
+Account ID: 813379123006
+Región: us-east-1
+
+--- FASE 3: RED (VPC) ---
+VPC_ID: vpc-0c0bcdc8b151ea321
+
+Subredes Públicas (EKS):
+SUB_PUB_1: subnet-0ad50fe2e446e2d00 (us-east-1a)
+SUB_PUB_2: subnet-078790bcaaf5bea1c (us-east-1b)
+
+Subredes Privadas (RDS):
+SUB_PRIV_1: subnet-07b5f3b4b44d285fe (us-east-1a)
+SUB_PRIV_2: subnet-019d32ea8b17ce37b (us-east-1b)
+
+--- FASE 3: BASE DE DATOS (RDS) ---
+Endpoint: innovatech-mysql.cgoz62luvipp.us-east-1.rds.amazonaws.com
+Security Group RDS: innovatech-rds-sg
+
+--- FASE 4: KUBERNETES (EKS) ---
+Versión: 1.30
+Config File: Otros/eks-config.yaml
+LabRole: arn:aws:iam::813379123006:role/LabRole

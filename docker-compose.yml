@@ -1,0 +1,117 @@
+version: '3.8'
+
+services:
+  mysql-db:
+    image: mysql:8.0
+    container_name: mysql-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root}
+    ports:
+      - "3306:3306"
+    networks:
+      - innovatech-network
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ms-api-gateway:
+    build:
+      context: ./ms-api_gateway
+    container_name: ms-api-gateway
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - AUTH_SERVICE_URL=http://ms-autenticacion:8081
+      - RECURSOS_COLABORACIONES_SERVICE_URL=http://ms-recursos-colaboraciones:8082
+      - GESTION_PROYECTOS_SERVICE_URL=http://ms-gestion-proyectos:8083
+      - ANALITICAS_SERVICE_URL=http://ms-analiticas:8084
+      - CORS_ALLOWED-ORIGINS=${CORS_ALLOWED_ORIGINS:-http://localhost:5173}
+    networks:
+      - innovatech-network
+    depends_on:
+      - ms-autenticacion
+      - ms-recursos-colaboraciones
+      - ms-gestion-proyectos
+      - ms-analiticas
+
+  ms-autenticacion:
+    build:
+      context: ./ms-autenticacion
+    container_name: ms-autenticacion
+    restart: always
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/db_autenticacion?createDatabaseIfNotExist=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-root}
+    networks:
+      - innovatech-network
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+
+  ms-recursos-colaboraciones:
+    build:
+      context: ./ms-recursos_colaboraciones
+    container_name: ms-recursos-colaboraciones
+    restart: always
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/db_recursos?createDatabaseIfNotExist=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-root}
+    networks:
+      - innovatech-network
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+
+  ms-gestion-proyectos:
+    build:
+      context: ./ms-gestion_proyectos
+    container_name: ms-gestion-proyectos
+    restart: always
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/db_gestion_proyectos?createDatabaseIfNotExist=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-root}
+    networks:
+      - innovatech-network
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+
+  ms-analiticas:
+    build:
+      context: ./ms-analiticas
+    container_name: ms-analiticas
+    restart: always
+    ports:
+      - "8084:8084"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/db_recursos?createDatabaseIfNotExist=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-root}
+    networks:
+      - innovatech-network
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+
+networks:
+  innovatech-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
+

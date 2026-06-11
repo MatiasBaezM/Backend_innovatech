@@ -1,0 +1,24 @@
+# Reemplaza <RDS_ENDPOINT> con el endpoint que entrega
+# infra/rds/setup-rds.ps1 una vez que la instancia esta "available".
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: innovatech-config
+  namespace: innovatech
+data:
+  # URLs de datasource, una por base de datos (mismo esquema que docker-compose)
+  AUTENTICACION_DB_URL: "jdbc:mysql://<RDS_ENDPOINT>:3306/db_autenticacion?createDatabaseIfNotExist=true"
+  RECURSOS_DB_URL: "jdbc:mysql://<RDS_ENDPOINT>:3306/db_recursos?createDatabaseIfNotExist=true"
+  GESTION_PROYECTOS_DB_URL: "jdbc:mysql://<RDS_ENDPOINT>:3306/db_gestion_proyectos?createDatabaseIfNotExist=true"
+  ANALITICAS_DB_URL: "jdbc:mysql://<RDS_ENDPOINT>:3306/db_recursos?createDatabaseIfNotExist=true"
+
+  SPRING_DATASOURCE_USERNAME: "admin"
+
+  # URLs internas usadas por ms-api-gateway para enrutar a cada microservicio
+  AUTH_SERVICE_URL: "http://ms-autenticacion:8081"
+  RECURSOS_COLABORACIONES_SERVICE_URL: "http://ms-recursos-colaboraciones:8082"
+  GESTION_PROYECTOS_SERVICE_URL: "http://ms-gestion-proyectos:8083"
+  ANALITICAS_SERVICE_URL: "http://ms-analiticas:8084"
+
+  # Origen permitido para CORS (actualizar en FASE 6 con la URL del frontend)
+  CORS_ALLOWED_ORIGINS: "http://localhost:5173"

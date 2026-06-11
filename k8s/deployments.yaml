@@ -1,0 +1,230 @@
+# ============================================================
+# INSTRUCCIONES:
+# Reemplaza TODAS las ocurrencias de:
+#   <ACCOUNT_ID> → con tu AWS Account ID (ej: 123456789012)
+#   <REGION>     → con tu región (ej: us-east-1)
+#
+# Para obtener tus valores, ejecuta en PowerShell:
+#   aws sts get-caller-identity --query Account --output text
+# ============================================================
+
+# ─── API Gateway ─────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ms-api-gateway
+  namespace: innovatech
+  labels:
+    app: ms-api-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ms-api-gateway
+  template:
+    metadata:
+      labels:
+        app: ms-api-gateway
+    spec:
+      containers:
+        - name: ms-api-gateway
+          image: <ACCOUNT_ID>.dkr.ecr.<REGION>.amazonaws.com/innovatech/ms-api-gateway:latest
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: innovatech-config
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+
+---
+# ─── Autenticación ───────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ms-autenticacion
+  namespace: innovatech
+  labels:
+    app: ms-autenticacion
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ms-autenticacion
+  template:
+    metadata:
+      labels:
+        app: ms-autenticacion
+    spec:
+      containers:
+        - name: ms-autenticacion
+          image: <ACCOUNT_ID>.dkr.ecr.<REGION>.amazonaws.com/innovatech/ms-autenticacion:latest
+          ports:
+            - containerPort: 8081
+          envFrom:
+            - configMapRef:
+                name: innovatech-config
+            - secretRef:
+                name: innovatech-secrets
+          livenessProbe:
+            httpGet:
+              path: /auth/health
+              port: 8081
+            initialDelaySeconds: 90
+            periodSeconds: 15
+            failureThreshold: 5
+          readinessProbe:
+            tcpSocket:
+              port: 8081
+            initialDelaySeconds: 60
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+
+---
+# ─── Recursos y Colaboraciones ───────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ms-recursos-colaboraciones
+  namespace: innovatech
+  labels:
+    app: ms-recursos-colaboraciones
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ms-recursos-colaboraciones
+  template:
+    metadata:
+      labels:
+        app: ms-recursos-colaboraciones
+    spec:
+      containers:
+        - name: ms-recursos-colaboraciones
+          image: <ACCOUNT_ID>.dkr.ecr.<REGION>.amazonaws.com/innovatech/ms-recursos-colaboraciones:latest
+          ports:
+            - containerPort: 8082
+          envFrom:
+            - configMapRef:
+                name: innovatech-config
+            - secretRef:
+                name: innovatech-secrets
+          readinessProbe:
+            tcpSocket:
+              port: 8082
+            initialDelaySeconds: 60
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+
+---
+# ─── Gestión de Proyectos ────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ms-gestion-proyectos
+  namespace: innovatech
+  labels:
+    app: ms-gestion-proyectos
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ms-gestion-proyectos
+  template:
+    metadata:
+      labels:
+        app: ms-gestion-proyectos
+    spec:
+      containers:
+        - name: ms-gestion-proyectos
+          image: <ACCOUNT_ID>.dkr.ecr.<REGION>.amazonaws.com/innovatech/ms-gestion-proyectos:latest
+          ports:
+            - containerPort: 8083
+          envFrom:
+            - configMapRef:
+                name: innovatech-config
+            - secretRef:
+                name: innovatech-secrets
+          readinessProbe:
+            tcpSocket:
+              port: 8083
+            initialDelaySeconds: 60
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+
+---
+# ─── Analíticas ──────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ms-analiticas
+  namespace: innovatech
+  labels:
+    app: ms-analiticas
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ms-analiticas
+  template:
+    metadata:
+      labels:
+        app: ms-analiticas
+    spec:
+      containers:
+        - name: ms-analiticas
+          image: <ACCOUNT_ID>.dkr.ecr.<REGION>.amazonaws.com/innovatech/ms-analiticas:latest
+          ports:
+            - containerPort: 8084
+          envFrom:
+            - configMapRef:
+                name: innovatech-config
+            - secretRef:
+                name: innovatech-secrets
+          readinessProbe:
+            tcpSocket:
+              port: 8084
+            initialDelaySeconds: 60
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"

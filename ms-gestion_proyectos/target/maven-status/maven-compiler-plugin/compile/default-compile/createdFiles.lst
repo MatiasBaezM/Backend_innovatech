@@ -1,0 +1,10 @@
+Innovatech\ms_gestion_proyectos\model\Proyecto$ProyectoBuilder.class
+Innovatech\ms_gestion_proyectos\service\ProyectoService.class
+Innovatech\ms_gestion_proyectos\repository\ProyectoRepository.class
+Innovatech\ms_gestion_proyectos\controller\ActividadController.class
+Innovatech\ms_gestion_proyectos\MsGestionProyectosApplication.class
+Innovatech\ms_gestion_proyectos\model\Actividad$ActividadBuilder.class
+Innovatech\ms_gestion_proyectos\model\Proyecto.class
+Innovatech\ms_gestion_proyectos\controller\ProyectoController.class
+Innovatech\ms_gestion_proyectos\repository\ActividadRepository.class
+Innovatech\ms_gestion_proyectos\model\Actividad.class

@@ -1,0 +1,12 @@
+C:\Users\Matias\Desktop\Proyecto fs3\Proyecto_Innovatech_2.0\ms-autenticacion\src\main\java\Innovatech\ms_autenticacion\config\DataInitializer.java
+C:\Users\Matias\Desktop\Proyecto fs3\Proyecto_Innovatech_2.0\ms-autenticacion\src\main\java\Innovatech\ms_autenticacion\controller\AuthController.java
+C:\Users\Matias\Desktop\Proyecto fs3\Proyecto_Innovatech_2.0\ms-autenticacion\src\main\java\Innovatech\ms_autenticacion\model\AuthRequest.java
+C:\Users\Matias\Desktop\Proyecto fs3\Proyecto_Innovatech_2.0\ms-autenticacion\src\main\java\Innovatech\ms_autenticacion\model\AuthResponse.java
+C:\Users\Matias\Desktop\Proyecto fs3\Proyecto_Innovatech_2.0\ms-autenticacion\src\main\java\Innovatech\ms_autenticacion\model\HabilidadIdsRequest.java
+C:\Users\Matias\Desktop\Proyecto fs3\Proyecto_Innovatech_2.0\ms-autenticacion\src\main\java\Innovatech\ms_autenticacion\model\HabilidadInfo.java
+C:\Users\Matias\Desktop\Proyecto fs3\Proyecto_Innovatech_2.0\ms-autenticacion\src\main\java\Innovatech\ms_autenticacion\model\Usuario.java
+C:\Users\Matias\Desktop\Proyecto fs3\Proyecto_Innovatech_2.0\ms-autenticacion\src\main\java\Innovatech\ms_autenticacion\MsAutenticacionApplication.java
+C:\Users\Matias\Desktop\Proyecto fs3\Proyecto_Innovatech_2.0\ms-autenticacion\src\main\java\Innovatech\ms_autenticacion\repository\UsuarioRepository.java
+C:\Users\Matias\Desktop\Proyecto fs3\Proyecto_Innovatech_2.0\ms-autenticacion\src\main\java\Innovatech\ms_autenticacion\security\JwtUtil.java
+C:\Users\Matias\Desktop\Proyecto fs3\Proyecto_Innovatech_2.0\ms-autenticacion\src\main\java\Innovatech\ms_autenticacion\security\SecurityConfig.java
+C:\Users\Matias\Desktop\Proyecto fs3\Proyecto_Innovatech_2.0\ms-autenticacion\src\main\java\Innovatech\ms_autenticacion\service\AuthService.java
