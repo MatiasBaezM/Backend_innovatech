@@ -1,0 +1,20 @@
+# Compiled output / build artifacts
+target/
+*.class
+
+# Secrets y configuracion local
+.env
+infra/rds/.db-password
+
+# Logs
+*.log
+
+# IDE / Editor
+.idea/
+*.iml
+.vscode/*
+!.vscode/extensions.json
+
+# OS
+.DS_Store
+Thumbs.db
