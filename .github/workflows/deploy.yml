@@ -78,11 +78,16 @@ jobs:
           kubectl apply -f infra/k8s/04-services.yaml
           kubectl apply -f infra/k8s/03-deployments.yaml
 
-      - name: Apply DB credentials secret
+      - name: Apply application secrets
         run: |
+          if [ -z "${{ secrets.JWT_SECRET }}" ]; then
+            echo "::error::Falta configurar el secret JWT_SECRET en GitHub (Settings > Secrets > Actions). Genera uno con: openssl rand -base64 48"
+            exit 1
+          fi
           kubectl create secret generic innovatech-secret \
             -n "$NAMESPACE" \
             --from-literal=SPRING_DATASOURCE_PASSWORD="${{ secrets.DB_PASSWORD }}" \
+            --from-literal=JWT_SECRET="${{ secrets.JWT_SECRET }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Point deployments at the freshly pushed images

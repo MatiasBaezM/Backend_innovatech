@@ -9,6 +9,7 @@ import Innovatech.ms_autenticacion.security.JwtUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -24,12 +25,14 @@ public class AuthService {
 
     private final UsuarioRepository usuarioRepository;
     private final JwtUtil jwtUtil;
+    private final PasswordEncoder passwordEncoder;
 
     @PersistenceContext
     private EntityManager entityManager;
 
     public AuthResponse login(AuthRequest request) {
-        Optional<Usuario> usuarioOpt = usuarioRepository.findByRutAndClave(request.getRut(), request.getClave());
+        Optional<Usuario> usuarioOpt = usuarioRepository.findByRut(request.getRut())
+                .filter(u -> passwordMatches(request.getClave(), u));
 
         if (usuarioOpt.isPresent()) {
             Usuario usuario = usuarioOpt.get();
@@ -40,10 +43,35 @@ public class AuthService {
         }
     }
 
+    /**
+     * Compara la clave contra el hash BCrypt almacenado. Si la clave guardada
+     * es legada (texto plano, anterior al hashing) y coincide, se re-hashea
+     * al vuelo para migrarla sin invalidar las cuentas existentes.
+     */
+    private boolean passwordMatches(String rawClave, Usuario usuario) {
+        String stored = usuario.getClave();
+        if (stored == null || rawClave == null) {
+            return false;
+        }
+        if (stored.startsWith("$2a$") || stored.startsWith("$2b$") || stored.startsWith("$2y$")) {
+            return passwordEncoder.matches(rawClave, stored);
+        }
+        if (stored.equals(rawClave)) {
+            usuario.setClave(passwordEncoder.encode(rawClave));
+            usuarioRepository.save(usuario);
+            return true;
+        }
+        return false;
+    }
+
     public Usuario register(Usuario usuario) {
         if (usuarioRepository.findByRut(usuario.getRut()).isPresent()) {
             throw new RuntimeException("El usuario con este RUT ya existe");
         }
+        if (usuario.getClave() == null || usuario.getClave().isBlank()) {
+            throw new RuntimeException("La clave es obligatoria");
+        }
+        usuario.setClave(passwordEncoder.encode(usuario.getClave()));
         usuario.setRol(resolveRolForCreate(usuario.getRol()));
         return usuarioRepository.save(usuario);
     }
@@ -87,7 +115,7 @@ public class AuthService {
             user.setRol(userDetails.getRol());
         }
         if (userDetails.getClave() != null && !userDetails.getClave().isEmpty()) {
-            user.setClave(userDetails.getClave());
+            user.setClave(passwordEncoder.encode(userDetails.getClave()));
         }
         if (userDetails.getHabilidadIds() != null) {
             user.setHabilidadIds(new HashSet<>(userDetails.getHabilidadIds()));

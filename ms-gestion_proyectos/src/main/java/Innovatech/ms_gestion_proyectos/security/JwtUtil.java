@@ -3,6 +3,7 @@ package Innovatech.ms_gestion_proyectos.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -10,9 +11,13 @@ import java.security.Key;
 @Component
 public class JwtUtil {
 
-    // Debe coincidir con el SECRET de ms-autenticacion para poder validar la firma del token
-    private static final String SECRET = "EstaEsUnaClaveSecretaMuyLargaParaPoderFirmarElTokenJwtInnovatech2026";
-    private final Key key = Keys.hmacShaKeyFor(SECRET.getBytes());
+    // Debe coincidir con el jwt.secret de ms-autenticacion para poder validar la firma del token.
+    // Se inyecta desde la propiedad jwt.secret (variable de entorno JWT_SECRET en produccion).
+    private final Key key;
+
+    public JwtUtil(@Value("${jwt.secret}") String secret) {
+        this.key = Keys.hmacShaKeyFor(secret.getBytes());
+    }
 
     public String resolveToken(String authHeader) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {

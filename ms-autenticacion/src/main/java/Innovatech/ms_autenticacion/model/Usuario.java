@@ -1,5 +1,6 @@
 package Innovatech.ms_autenticacion.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,6 +29,8 @@ public class Usuario {
     @Column(nullable = false)
     private String nombre;
 
+    // WRITE_ONLY: se acepta en los request (register/update) pero nunca se serializa en las respuestas
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(nullable = false)
     private String clave;
 

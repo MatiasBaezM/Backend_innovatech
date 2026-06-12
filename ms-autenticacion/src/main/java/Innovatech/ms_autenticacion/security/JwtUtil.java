@@ -4,6 +4,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -15,9 +16,12 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    // You should inject this from properties in a real app
-    private static final String SECRET = "EstaEsUnaClaveSecretaMuyLargaParaPoderFirmarElTokenJwtInnovatech2026";
-    private final Key key = Keys.hmacShaKeyFor(SECRET.getBytes());
+    // Se inyecta desde la propiedad jwt.secret (variable de entorno JWT_SECRET en produccion)
+    private final Key key;
+
+    public JwtUtil(@Value("${jwt.secret}") String secret) {
+        this.key = Keys.hmacShaKeyFor(secret.getBytes());
+    }
 
     public String generateToken(String rut) {
         Map<String, Object> claims = new HashMap<>();

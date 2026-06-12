@@ -101,7 +101,15 @@ public class AuthController {
     }
 
     @GetMapping("/validate")
-    public ResponseEntity<String> validateToken() {
-        return ResponseEntity.ok("Token es válido");
+    public ResponseEntity<String> validateToken(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(401).body("Falta el header Authorization con formato Bearer");
+        }
+        try {
+            jwtUtil.extractRut(authHeader.substring(7)); // lanza excepcion si es invalido o expiro
+            return ResponseEntity.ok("Token es válido");
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body("Token inválido o expirado");
+        }
     }
 }
