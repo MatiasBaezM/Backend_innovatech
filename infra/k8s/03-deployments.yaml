@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: ms-autenticacion
-          image: 147318157574.dkr.ecr.us-east-1.amazonaws.com/innovatech/ms-autenticacion:latest
+          image: ${ECR_REGISTRY}/innovatech/ms-autenticacion:${IMAGE_TAG}
           ports:
             - containerPort: 8081
           envFrom:
@@ -70,7 +70,7 @@ spec:
     spec:
       containers:
         - name: ms-recursos-colaboraciones
-          image: 147318157574.dkr.ecr.us-east-1.amazonaws.com/innovatech/ms-recursos-colaboraciones:latest
+          image: ${ECR_REGISTRY}/innovatech/ms-recursos-colaboraciones:${IMAGE_TAG}
           ports:
             - containerPort: 8082
           envFrom:
@@ -123,7 +123,7 @@ spec:
     spec:
       containers:
         - name: ms-gestion-proyectos
-          image: 147318157574.dkr.ecr.us-east-1.amazonaws.com/innovatech/ms-gestion-proyectos:latest
+          image: ${ECR_REGISTRY}/innovatech/ms-gestion-proyectos:${IMAGE_TAG}
           ports:
             - containerPort: 8083
           envFrom:
@@ -176,7 +176,7 @@ spec:
     spec:
       containers:
         - name: ms-analiticas
-          image: 147318157574.dkr.ecr.us-east-1.amazonaws.com/innovatech/ms-analiticas:latest
+          image: ${ECR_REGISTRY}/innovatech/ms-analiticas:${IMAGE_TAG}
           ports:
             - containerPort: 8084
           envFrom:
@@ -229,7 +229,7 @@ spec:
     spec:
       containers:
         - name: ms-api-gateway
-          image: 147318157574.dkr.ecr.us-east-1.amazonaws.com/innovatech/ms-api-gateway:latest
+          image: ${ECR_REGISTRY}/innovatech/ms-api-gateway:${IMAGE_TAG}
           ports:
             - containerPort: 8080
           envFrom:
