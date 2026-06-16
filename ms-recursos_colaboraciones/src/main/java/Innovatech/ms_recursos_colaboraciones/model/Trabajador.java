@@ -22,7 +22,7 @@ public class Trabajador {
     private Long id;
 
     @Column(unique = true, nullable = false)
-    private String rut; // Referencia al microservicio de autenticación
+    private String rut;
 
     @Column(nullable = false)
     private String nombre;
@@ -35,9 +35,6 @@ public class Trabajador {
 
     @Column(name = "tarifa_hora")
     private Double tarifaHora;
-
-    @ManyToMany(mappedBy = "trabajadores")
-    private Set<Equipo> equipos = new HashSet<>();
 
     @ManyToMany
     @JoinTable(
