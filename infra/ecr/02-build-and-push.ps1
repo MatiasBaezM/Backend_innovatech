@@ -14,7 +14,10 @@ $REGISTRY = "$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com"
 Write-Host "Registry: $REGISTRY"
 
 # Login de Docker contra ECR (expira cada 12 horas)
-aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $REGISTRY
+# Nota: en PowerShell el pipe a --password-stdin agrega un CRLF que corrompe el
+# token (ECR responde 400). Se captura el token en variable y se usa --password.
+$ecrPw = (aws ecr get-login-password --region $REGION)
+docker login --username AWS --password $ecrPw $REGISTRY
 if ($LASTEXITCODE -ne 0) { throw "docker login fallo (exit $LASTEXITCODE)" }
 
 $projectRoot = Resolve-Path (Join-Path $PSScriptRoot "..\..")

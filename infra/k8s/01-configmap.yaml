@@ -4,11 +4,11 @@ metadata:
   name: innovatech-config
   namespace: innovatech
 data:
-  # URLs de datasource, una por base de datos (mismo esquema que docker-compose)
-  AUTENTICACION_DB_URL: "jdbc:mysql://innovatech-mysql.cttwoohkgvu9.us-east-1.rds.amazonaws.com:3306/db_autenticacion?createDatabaseIfNotExist=true"
-  RECURSOS_DB_URL: "jdbc:mysql://innovatech-mysql.cttwoohkgvu9.us-east-1.rds.amazonaws.com:3306/db_recursos?createDatabaseIfNotExist=true"
-  GESTION_PROYECTOS_DB_URL: "jdbc:mysql://innovatech-mysql.cttwoohkgvu9.us-east-1.rds.amazonaws.com:3306/db_gestion_proyectos?createDatabaseIfNotExist=true"
-  ANALITICAS_DB_URL: "jdbc:mysql://innovatech-mysql.cttwoohkgvu9.us-east-1.rds.amazonaws.com:3306/db_recursos?createDatabaseIfNotExist=true"
+  # URLs de datasource: una INSTANCIA RDS dedicada por microservicio
+  AUTENTICACION_DB_URL: "jdbc:mysql://innovatech-db-autenticacion.cq5lexhdh84h.us-east-1.rds.amazonaws.com:3306/db_autenticacion?createDatabaseIfNotExist=true"
+  RECURSOS_DB_URL: "jdbc:mysql://innovatech-db-recursos.cq5lexhdh84h.us-east-1.rds.amazonaws.com:3306/db_recursos?createDatabaseIfNotExist=true"
+  GESTION_PROYECTOS_DB_URL: "jdbc:mysql://innovatech-db-gestion.cq5lexhdh84h.us-east-1.rds.amazonaws.com:3306/db_gestion_proyectos?createDatabaseIfNotExist=true"
+  ANALITICAS_DB_URL: "jdbc:mysql://innovatech-db-analiticas.cq5lexhdh84h.us-east-1.rds.amazonaws.com:3306/db_analiticas?createDatabaseIfNotExist=true"
 
   SPRING_DATASOURCE_USERNAME: "admin"
 

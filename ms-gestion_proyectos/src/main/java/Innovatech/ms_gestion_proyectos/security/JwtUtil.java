@@ -30,6 +30,10 @@ public class JwtUtil {
         return (String) extractAllClaims(token).get("rol");
     }
 
+    public String extractRut(String token) {
+        return extractAllClaims(token).getSubject();
+    }
+
     public Long extractUserId(String token) {
         Object id = extractAllClaims(token).get("id");
         return id != null ? ((Number) id).longValue() : null;

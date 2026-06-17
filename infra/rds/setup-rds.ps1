@@ -17,9 +17,9 @@ $ErrorActionPreference = "Stop"
 $REGION  = "us-east-1"
 
 # Misma VPC y subnets (us-east-1a / us-east-1b) que infra/eks-cluster.yaml
-$VPC_ID   = "vpc-0eb34b49b01219b10"
-$SUBNET_A = "subnet-07cd81458d452462f"   # us-east-1a
-$SUBNET_B = "subnet-011fd192a2e7971fd"   # us-east-1b
+$VPC_ID   = "vpc-07a0ffde3f8d510dc"
+$SUBNET_A = "subnet-0a5b6b9f33eb9fb8f"   # us-east-1a
+$SUBNET_B = "subnet-02bc61731ed2fd002"   # us-east-1b
 
 # IMPORTANTE: la password NO se hardcodea en el repo. Definila antes de
 # correr el script:

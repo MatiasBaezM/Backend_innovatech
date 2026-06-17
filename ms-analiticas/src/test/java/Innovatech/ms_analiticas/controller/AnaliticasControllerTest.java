@@ -4,10 +4,13 @@ import Innovatech.ms_analiticas.dto.CargaTrabajoDTO;
 import Innovatech.ms_analiticas.dto.CostoProyectoDTO;
 import Innovatech.ms_analiticas.dto.GrupoConteoDTO;
 import Innovatech.ms_analiticas.dto.ResumenDTO;
+import Innovatech.ms_analiticas.security.JwtUtil;
 import Innovatech.ms_analiticas.service.AnaliticasService;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
@@ -20,7 +23,10 @@ import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(AnaliticasController.class)
+@WebMvcTest(value = AnaliticasController.class, excludeAutoConfiguration = {
+        SecurityAutoConfiguration.class,
+        SecurityFilterAutoConfiguration.class
+})
 @ActiveProfiles("test")
 class AnaliticasControllerTest {
 
@@ -29,6 +35,9 @@ class AnaliticasControllerTest {
 
     @MockBean
     private AnaliticasService analiticasService;
+
+    @MockBean
+    private JwtUtil jwtUtil;
 
     @Test
     void testGetResumen() throws Exception {

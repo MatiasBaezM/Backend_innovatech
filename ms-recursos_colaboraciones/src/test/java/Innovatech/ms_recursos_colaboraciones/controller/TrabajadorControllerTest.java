@@ -1,11 +1,14 @@
 package Innovatech.ms_recursos_colaboraciones.controller;
 
 import Innovatech.ms_recursos_colaboraciones.model.Trabajador;
+import Innovatech.ms_recursos_colaboraciones.security.JwtUtil;
 import Innovatech.ms_recursos_colaboraciones.service.TrabajadorService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
@@ -21,7 +24,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(TrabajadorController.class)
+@WebMvcTest(value = TrabajadorController.class, excludeAutoConfiguration = {
+        SecurityAutoConfiguration.class,
+        SecurityFilterAutoConfiguration.class
+})
 @ActiveProfiles("test")
 class TrabajadorControllerTest {
 
@@ -30,6 +36,9 @@ class TrabajadorControllerTest {
 
     @MockBean
     private TrabajadorService trabajadorService;
+
+    @MockBean
+    private JwtUtil jwtUtil;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 

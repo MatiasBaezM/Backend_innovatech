@@ -1,15 +1,12 @@
-package Innovatech.ms_autenticacion.security;
+package Innovatech.ms_recursos_colaboraciones.security;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -22,24 +19,13 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(authz -> authz
-                // Publicos: login, validacion de token y health checks
-                .requestMatchers("/auth/login", "/auth/validate").permitAll()
+                // Health checks de EKS/ALB son publicos
                 .requestMatchers("/actuator/**").permitAll()
-                // Acciones exclusivas de ADMINISTRADOR: crear y eliminar usuarios.
-                // (PUT /auth/users/** queda solo autenticado porque lo usa el
-                //  cambio de contrasena self-service de colaboradores/gestores.)
-                .requestMatchers(HttpMethod.POST, "/auth/register").hasRole("ADMINISTRADOR")
-                .requestMatchers(HttpMethod.DELETE, "/auth/users/**").hasRole("ADMINISTRADOR")
-                // Todo lo demas (lista de usuarios, /me, habilidades) requiere un JWT valido
+                // Todo el negocio (/api/**) requiere un JWT valido
                 .anyRequest().authenticated()
             )
             .exceptionHandling(ex -> ex

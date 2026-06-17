@@ -7,14 +7,14 @@ metadata:
   version: "1.31"
 
 iam:
-  serviceRoleARN: arn:aws:iam::147318157574:role/LabRole
+  serviceRoleARN: arn:aws:iam::794860266885:role/LabRole
 
 vpc:
-  id: vpc-0eb34b49b01219b10
+  id: vpc-07a0ffde3f8d510dc
   subnets:
     public:
-      us-east-1a: { id: subnet-07cd81458d452462f }
-      us-east-1b: { id: subnet-011fd192a2e7971fd }
+      us-east-1a: { id: subnet-0a5b6b9f33eb9fb8f }
+      us-east-1b: { id: subnet-02bc61731ed2fd002 }
 
 managedNodeGroups:
   - name: ng-1
@@ -25,4 +25,4 @@ managedNodeGroups:
     volumeSize: 20
     privateNetworking: false
     iam:
-      instanceRoleARN: arn:aws:iam::147318157574:role/LabRole
+      instanceRoleARN: arn:aws:iam::794860266885:role/LabRole
