@@ -2,7 +2,7 @@ package Innovatech.ms_gestion_proyectos.controller;
 
 import Innovatech.ms_gestion_proyectos.model.EquipoRequest;
 import Innovatech.ms_gestion_proyectos.model.Proyecto;
-import Innovatech.ms_gestion_proyectos.security.JwtUtil;
+import Innovatech.ms_gestion_proyectos.security.SecurityUtils;
 import Innovatech.ms_gestion_proyectos.service.ProyectoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,13 +17,10 @@ import java.util.List;
 public class ProyectoController {
 
     private final ProyectoService proyectoService;
-    private final JwtUtil jwtUtil;
 
     @GetMapping
-    public List<Proyecto> getAllProyectos(@RequestHeader(value = "Authorization", required = false) String authHeader) {
-        String rol = jwtUtil.extractRolFromHeader(authHeader);
-        Long userId = jwtUtil.extractUserIdFromHeader(authHeader);
-        return proyectoService.getAllProyectos(rol, userId);
+    public List<Proyecto> getAllProyectos() {
+        return proyectoService.getAllProyectos(SecurityUtils.extractRol(), SecurityUtils.extractUserId());
     }
 
     @GetMapping("/{id}")
@@ -34,8 +31,11 @@ public class ProyectoController {
     }
 
     @PostMapping
-    public Proyecto createProyecto(@RequestBody Proyecto proyecto) {
-        return proyectoService.createProyecto(proyecto);
+    public ResponseEntity<Proyecto> createProyecto(@RequestBody Proyecto proyecto) {
+        if ("COLABORADOR".equals(SecurityUtils.extractRol())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        return ResponseEntity.ok(proyectoService.createProyecto(proyecto));
     }
 
     @PutMapping("/{id}")
@@ -48,9 +48,8 @@ public class ProyectoController {
     }
 
     @PutMapping("/{id}/equipo")
-    public ResponseEntity<Proyecto> updateEquipo(@PathVariable Long id, @RequestBody EquipoRequest request,
-                                                  @RequestHeader(value = "Authorization", required = false) String authHeader) {
-        if (!"ADMINISTRADOR".equals(jwtUtil.extractRolFromHeader(authHeader))) {
+    public ResponseEntity<Proyecto> updateEquipo(@PathVariable Long id, @RequestBody EquipoRequest request) {
+        if (!"ADMINISTRADOR".equals(SecurityUtils.extractRol())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         try {
@@ -62,6 +61,9 @@ public class ProyectoController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProyecto(@PathVariable Long id) {
+        if (!"ADMINISTRADOR".equals(SecurityUtils.extractRol())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         proyectoService.deleteProyecto(id);
         return ResponseEntity.noContent().build();
     }

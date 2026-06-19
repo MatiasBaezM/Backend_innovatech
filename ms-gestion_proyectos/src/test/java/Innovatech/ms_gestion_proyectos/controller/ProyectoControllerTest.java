@@ -3,10 +3,12 @@ package Innovatech.ms_gestion_proyectos.controller;
 import Innovatech.ms_gestion_proyectos.model.Colaborador;
 import Innovatech.ms_gestion_proyectos.model.EquipoRequest;
 import Innovatech.ms_gestion_proyectos.model.Proyecto;
+import Innovatech.ms_gestion_proyectos.security.AuthenticatedUser;
 import Innovatech.ms_gestion_proyectos.security.JwtUtil;
 import Innovatech.ms_gestion_proyectos.service.ProyectoService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +17,9 @@ import org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAut
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -43,9 +48,21 @@ class ProyectoControllerTest {
     private ProyectoService proyectoService;
 
     @MockBean
-    private JwtUtil jwtUtil;
+    private JwtUtil jwtUtil; // requerido por JwtAuthenticationFilter (@Component)
 
     private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+
+    private void setAuthentication(String rol, Long userId) {
+        var auth = new UsernamePasswordAuthenticationToken("test-rut", null,
+                List.of(new SimpleGrantedAuthority("ROLE_" + rol)));
+        auth.setDetails(new AuthenticatedUser(rol, userId));
+        SecurityContextHolder.getContext().setAuthentication(auth);
+    }
+
+    @AfterEach
+    void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
+    }
 
     private Proyecto buildProyecto(Long id, String nombre, Long gestorId) {
         return Proyecto.builder()
@@ -56,14 +73,13 @@ class ProyectoControllerTest {
 
     @Test
     void testGetAllProyectos() throws Exception {
-        Mockito.when(jwtUtil.extractRolFromHeader(any())).thenReturn("ADMINISTRADOR");
-        Mockito.when(jwtUtil.extractUserIdFromHeader(any())).thenReturn(1L);
+        setAuthentication("ADMINISTRADOR", 1L);
         Mockito.when(proyectoService.getAllProyectos("ADMINISTRADOR", 1L)).thenReturn(Arrays.asList(
                 buildProyecto(1L, "Proyecto A", 10L),
                 buildProyecto(2L, "Proyecto B", 20L)
         ));
 
-        mockMvc.perform(get("/api/proyectos").header("Authorization", "Bearer token"))
+        mockMvc.perform(get("/api/proyectos"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].nombre", is("Proyecto A")));
@@ -87,7 +103,8 @@ class ProyectoControllerTest {
     }
 
     @Test
-    void testCreateProyecto() throws Exception {
+    void testCreateProyecto_comoAdministrador() throws Exception {
+        setAuthentication("ADMINISTRADOR", 1L);
         Proyecto nuevo = buildProyecto(null, "Nuevo Proyecto", 10L);
         Mockito.when(proyectoService.createProyecto(any(Proyecto.class))).thenReturn(buildProyecto(1L, "Nuevo Proyecto", 10L));
 
@@ -97,6 +114,17 @@ class ProyectoControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.nombre").value("Nuevo Proyecto"));
+    }
+
+    @Test
+    void testCreateProyecto_comoColaborador_retorna403() throws Exception {
+        setAuthentication("COLABORADOR", 5L);
+        Proyecto nuevo = buildProyecto(null, "Nuevo Proyecto", 10L);
+
+        mockMvc.perform(post("/api/proyectos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(nuevo)))
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -125,12 +153,11 @@ class ProyectoControllerTest {
 
     @Test
     void testUpdateEquipo_comoAdmin() throws Exception {
+        setAuthentication("ADMINISTRADOR", 1L);
         EquipoRequest request = new EquipoRequest(5L, "Gestor Nuevo", List.of(new Colaborador(10L, "Colab")));
-        Mockito.when(jwtUtil.extractRolFromHeader(any())).thenReturn("ADMINISTRADOR");
         Mockito.when(proyectoService.updateEquipo(eq(1L), any(EquipoRequest.class))).thenReturn(buildProyecto(1L, "Proyecto A", 5L));
 
         mockMvc.perform(put("/api/proyectos/1/equipo")
-                        .header("Authorization", "Bearer token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
@@ -138,11 +165,10 @@ class ProyectoControllerTest {
 
     @Test
     void testUpdateEquipo_sinPermisos_retorna403() throws Exception {
+        setAuthentication("COLABORADOR", 5L);
         EquipoRequest request = new EquipoRequest(5L, "Gestor Nuevo", List.of());
-        Mockito.when(jwtUtil.extractRolFromHeader(any())).thenReturn("COLABORADOR");
 
         mockMvc.perform(put("/api/proyectos/1/equipo")
-                        .header("Authorization", "Bearer token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isForbidden());
@@ -150,23 +176,31 @@ class ProyectoControllerTest {
 
     @Test
     void testUpdateEquipo_proyectoNoExistente_retorna404() throws Exception {
+        setAuthentication("ADMINISTRADOR", 1L);
         EquipoRequest request = new EquipoRequest(5L, "Gestor Nuevo", List.of());
-        Mockito.when(jwtUtil.extractRolFromHeader(any())).thenReturn("ADMINISTRADOR");
         Mockito.when(proyectoService.updateEquipo(eq(99L), any(EquipoRequest.class)))
                 .thenThrow(new RuntimeException("Proyecto no encontrado"));
 
         mockMvc.perform(put("/api/proyectos/99/equipo")
-                        .header("Authorization", "Bearer token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    void testDeleteProyecto() throws Exception {
+    void testDeleteProyecto_comoAdministrador() throws Exception {
+        setAuthentication("ADMINISTRADOR", 1L);
         Mockito.doNothing().when(proyectoService).deleteProyecto(1L);
 
         mockMvc.perform(delete("/api/proyectos/1"))
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void testDeleteProyecto_comoColaborador_retorna403() throws Exception {
+        setAuthentication("COLABORADOR", 5L);
+
+        mockMvc.perform(delete("/api/proyectos/1"))
+                .andExpect(status().isForbidden());
     }
 }

@@ -51,6 +51,7 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/db_autenticacion?createDatabaseIfNotExist=true
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-root}
+      - JWT_SECRET=${JWT_SECRET}
     networks:
       - innovatech-network
     depends_on:
@@ -85,6 +86,7 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/db_gestion_proyectos?createDatabaseIfNotExist=true
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-root}
+      - JWT_SECRET=${JWT_SECRET}
     networks:
       - innovatech-network
     depends_on:
@@ -102,6 +104,7 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/db_recursos?createDatabaseIfNotExist=true
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-root}
+      - JWT_SECRET=${JWT_SECRET}
     networks:
       - innovatech-network
     depends_on:

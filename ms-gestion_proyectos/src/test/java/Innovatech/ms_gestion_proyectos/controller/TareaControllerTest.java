@@ -4,10 +4,12 @@ import Innovatech.ms_gestion_proyectos.model.RechazoRequest;
 import Innovatech.ms_gestion_proyectos.model.Tarea;
 import Innovatech.ms_gestion_proyectos.model.Tarea.Estado;
 import Innovatech.ms_gestion_proyectos.model.Tarea.Prioridad;
+import Innovatech.ms_gestion_proyectos.security.AuthenticatedUser;
 import Innovatech.ms_gestion_proyectos.security.JwtUtil;
 import Innovatech.ms_gestion_proyectos.service.TareaService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,11 +18,15 @@ import org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAut
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -43,10 +49,22 @@ class TareaControllerTest {
     private TareaService tareaService;
 
     @MockBean
-    private JwtUtil jwtUtil;
+    private JwtUtil jwtUtil; // requerido por JwtAuthenticationFilter (@Component)
 
     private final ObjectMapper objectMapper = new ObjectMapper()
             .registerModule(new JavaTimeModule());
+
+    private void setAuthentication(String rol, Long userId) {
+        var auth = new UsernamePasswordAuthenticationToken("test-rut", null,
+                List.of(new SimpleGrantedAuthority("ROLE_" + rol)));
+        auth.setDetails(new AuthenticatedUser(rol, userId));
+        SecurityContextHolder.getContext().setAuthentication(auth);
+    }
+
+    @AfterEach
+    void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
+    }
 
     private Tarea buildTarea(Long id, Long proyectoId, Estado estado) {
         return Tarea.builder()
@@ -101,16 +119,14 @@ class TareaControllerTest {
 
     @Test
     void testCreateTarea_comoAdministrador() throws Exception {
+        setAuthentication("ADMINISTRADOR", 1L);
         Tarea nueva = buildTarea(null, 5L, Estado.POR_HACER);
         Tarea guardada = buildTarea(1L, 5L, Estado.POR_HACER);
 
-        Mockito.when(jwtUtil.extractRolFromHeader(any())).thenReturn("ADMINISTRADOR");
-        Mockito.when(jwtUtil.extractUserIdFromHeader(any())).thenReturn(1L);
         Mockito.when(tareaService.createTarea(eq(5L), any(Tarea.class), eq("ADMINISTRADOR"), eq(1L)))
                 .thenReturn(guardada);
 
         mockMvc.perform(post("/api/proyectos/5/tareas")
-                        .header("Authorization", "Bearer token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(nueva)))
                 .andExpect(status().isOk())
@@ -120,11 +136,10 @@ class TareaControllerTest {
 
     @Test
     void testCreateTarea_comoColaborador_retorna403() throws Exception {
+        setAuthentication("COLABORADOR", 5L);
         Tarea nueva = buildTarea(null, 5L, Estado.POR_HACER);
-        Mockito.when(jwtUtil.extractRolFromHeader(any())).thenReturn("COLABORADOR");
 
         mockMvc.perform(post("/api/proyectos/5/tareas")
-                        .header("Authorization", "Bearer token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(nueva)))
                 .andExpect(status().isForbidden());
@@ -132,14 +147,12 @@ class TareaControllerTest {
 
     @Test
     void testCreateTarea_gestorProyectoAjeno_retorna403() throws Exception {
+        setAuthentication("GESTOR_PROYECTOS", 99L);
         Tarea nueva = buildTarea(null, 5L, Estado.POR_HACER);
-        Mockito.when(jwtUtil.extractRolFromHeader(any())).thenReturn("GESTOR_PROYECTOS");
-        Mockito.when(jwtUtil.extractUserIdFromHeader(any())).thenReturn(99L);
         Mockito.when(tareaService.createTarea(eq(5L), any(Tarea.class), eq("GESTOR_PROYECTOS"), eq(99L)))
                 .thenThrow(new SecurityException("No autorizado"));
 
         mockMvc.perform(post("/api/proyectos/5/tareas")
-                        .header("Authorization", "Bearer token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(nueva)))
                 .andExpect(status().isForbidden());
@@ -149,12 +162,11 @@ class TareaControllerTest {
 
     @Test
     void testUpdateTarea_exitoso() throws Exception {
+        setAuthentication("ADMINISTRADOR", 1L);
         Tarea actualizada = buildTarea(1L, 5L, Estado.EN_PROGRESO);
-        Mockito.when(jwtUtil.extractRolFromHeader(any())).thenReturn("ADMINISTRADOR");
         Mockito.when(tareaService.updateTarea(eq(1L), any(Tarea.class))).thenReturn(actualizada);
 
         mockMvc.perform(put("/api/proyectos/5/tareas/1")
-                        .header("Authorization", "Bearer token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(actualizada)))
                 .andExpect(status().isOk())
@@ -163,11 +175,10 @@ class TareaControllerTest {
 
     @Test
     void testUpdateTarea_colaboradorIntentaRevisar_retorna403() throws Exception {
+        setAuthentication("COLABORADOR", 5L);
         Tarea tarea = buildTarea(1L, 5L, Estado.REVISADO);
-        Mockito.when(jwtUtil.extractRolFromHeader(any())).thenReturn("COLABORADOR");
 
         mockMvc.perform(put("/api/proyectos/5/tareas/1")
-                        .header("Authorization", "Bearer token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(tarea)))
                 .andExpect(status().isForbidden());
@@ -177,22 +188,20 @@ class TareaControllerTest {
 
     @Test
     void testAprobarTarea_comoAdministrador() throws Exception {
+        setAuthentication("ADMINISTRADOR", 1L);
         Tarea aprobada = buildTarea(1L, 5L, Estado.REVISADO);
-        Mockito.when(jwtUtil.extractRolFromHeader(any())).thenReturn("ADMINISTRADOR");
         Mockito.when(tareaService.aprobarTarea(1L)).thenReturn(aprobada);
 
-        mockMvc.perform(patch("/api/proyectos/5/tareas/1/aprobar")
-                        .header("Authorization", "Bearer token"))
+        mockMvc.perform(patch("/api/proyectos/5/tareas/1/aprobar"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.estado").value("REVISADO"));
     }
 
     @Test
     void testAprobarTarea_comoGestor_retorna403() throws Exception {
-        Mockito.when(jwtUtil.extractRolFromHeader(any())).thenReturn("GESTOR_PROYECTOS");
+        setAuthentication("GESTOR_PROYECTOS", 2L);
 
-        mockMvc.perform(patch("/api/proyectos/5/tareas/1/aprobar")
-                        .header("Authorization", "Bearer token"))
+        mockMvc.perform(patch("/api/proyectos/5/tareas/1/aprobar"))
                 .andExpect(status().isForbidden());
     }
 
@@ -200,18 +209,17 @@ class TareaControllerTest {
 
     @Test
     void testRechazarTarea_comoAdministrador() throws Exception {
+        setAuthentication("ADMINISTRADOR", 1L);
         Tarea rechazada = buildTarea(1L, 5L, Estado.POR_HACER);
         rechazada.setMensajeCorreccion("Falta documentación");
 
         RechazoRequest rechazoRequest = new RechazoRequest();
         rechazoRequest.setMensajeCorreccion("Falta documentación");
 
-        Mockito.when(jwtUtil.extractRolFromHeader(any())).thenReturn("ADMINISTRADOR");
         Mockito.when(tareaService.rechazarTarea(eq(1L), eq("Falta documentación")))
                 .thenReturn(rechazada);
 
         mockMvc.perform(patch("/api/proyectos/5/tareas/1/rechazar")
-                        .header("Authorization", "Bearer token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(rechazoRequest)))
                 .andExpect(status().isOk())
@@ -221,12 +229,11 @@ class TareaControllerTest {
 
     @Test
     void testRechazarTarea_comoColaborador_retorna403() throws Exception {
+        setAuthentication("COLABORADOR", 5L);
         RechazoRequest rechazoRequest = new RechazoRequest();
         rechazoRequest.setMensajeCorreccion("Mensaje");
-        Mockito.when(jwtUtil.extractRolFromHeader(any())).thenReturn("COLABORADOR");
 
         mockMvc.perform(patch("/api/proyectos/5/tareas/1/rechazar")
-                        .header("Authorization", "Bearer token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(rechazoRequest)))
                 .andExpect(status().isForbidden());
