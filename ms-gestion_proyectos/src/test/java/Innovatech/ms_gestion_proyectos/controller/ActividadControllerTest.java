@@ -1,8 +1,11 @@
 package Innovatech.ms_gestion_proyectos.controller;
 
+import Innovatech.ms_gestion_proyectos.dto.GestorActividadResponse;
+import Innovatech.ms_gestion_proyectos.dto.TareaPorAprobar;
 import Innovatech.ms_gestion_proyectos.model.Actividad;
 import Innovatech.ms_gestion_proyectos.repository.ActividadRepository;
 import Innovatech.ms_gestion_proyectos.security.JwtUtil;
+import Innovatech.ms_gestion_proyectos.service.ActividadService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.Test;
@@ -37,6 +40,9 @@ class ActividadControllerTest {
 
     @MockBean
     private ActividadRepository actividadRepository;
+
+    @MockBean
+    private ActividadService actividadService;
 
     @MockBean
     private JwtUtil jwtUtil;
@@ -74,5 +80,20 @@ class ActividadControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.titulo").value("Nueva actividad"));
+    }
+
+    @Test
+    void testGetFeedGestor() throws Exception {
+        GestorActividadResponse response = new GestorActividadResponse(
+                Arrays.asList(buildActividad(1L, "Juan completó la tarea \"Login\"")),
+                Arrays.asList(new TareaPorAprobar(5L, 2L, "Proyecto A", "Login", "Juan")));
+        Mockito.when(actividadService.getFeedGestor(any(), any())).thenReturn(response);
+
+        mockMvc.perform(get("/api/proyectos/actividades/gestor"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.actividades", hasSize(1)))
+                .andExpect(jsonPath("$.porAprobar", hasSize(1)))
+                .andExpect(jsonPath("$.porAprobar[0].titulo", is("Login")))
+                .andExpect(jsonPath("$.porAprobar[0].asignadoNombre", is("Juan")));
     }
 }

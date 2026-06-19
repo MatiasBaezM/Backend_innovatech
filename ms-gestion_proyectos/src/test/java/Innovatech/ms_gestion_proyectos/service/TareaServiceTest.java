@@ -5,6 +5,7 @@ import Innovatech.ms_gestion_proyectos.model.Proyecto;
 import Innovatech.ms_gestion_proyectos.model.Tarea;
 import Innovatech.ms_gestion_proyectos.model.Tarea.Estado;
 import Innovatech.ms_gestion_proyectos.model.Tarea.Prioridad;
+import Innovatech.ms_gestion_proyectos.repository.ActividadRepository;
 import Innovatech.ms_gestion_proyectos.repository.ProyectoRepository;
 import Innovatech.ms_gestion_proyectos.repository.TareaRepository;
 import org.junit.jupiter.api.Test;
@@ -27,6 +28,7 @@ class TareaServiceTest {
 
     @Mock private TareaRepository tareaRepository;
     @Mock private ProyectoRepository proyectoRepository;
+    @Mock private ActividadRepository actividadRepository;
 
     @InjectMocks
     private TareaService tareaService;
@@ -104,7 +106,9 @@ class TareaServiceTest {
         assertEquals(1L, resultado.getId());
         assertEquals(5L, resultado.getProyectoId());
         verify(tareaRepository, times(1)).save(any(Tarea.class));
-        verify(proyectoRepository, never()).findById(any());
+        // ADMINISTRADOR no dispara el chequeo de autorizacion del gestor; el unico
+        // findById que ocurre es el del registro de actividad (lookup del nombre del proyecto).
+        verify(actividadRepository, times(1)).save(any());
     }
 
     @Test
@@ -120,7 +124,9 @@ class TareaServiceTest {
 
         assertNotNull(resultado);
         assertEquals(1L, resultado.getId());
-        verify(proyectoRepository, times(1)).findById(5L);
+        // findById ocurre dos veces: una para autorizar al gestor y otra en el
+        // registro de actividad (lookup del nombre del proyecto).
+        verify(proyectoRepository, times(2)).findById(5L);
         verify(tareaRepository, times(1)).save(any(Tarea.class));
     }
 

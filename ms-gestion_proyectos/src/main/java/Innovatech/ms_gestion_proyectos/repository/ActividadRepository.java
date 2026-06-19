@@ -9,4 +9,7 @@ import java.util.List;
 @Repository
 public interface ActividadRepository extends JpaRepository<Actividad, Long> {
     List<Actividad> findTop10ByOrderByFechaCreacionDesc();
+
+    // Feed del gestor: actividades de los proyectos que gestiona, mas recientes primero.
+    List<Actividad> findTop30ByProyectoIdInOrderByFechaCreacionDesc(List<Long> proyectoIds);
 }

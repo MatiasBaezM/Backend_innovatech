@@ -9,4 +9,7 @@ import java.util.List;
 @Repository
 public interface TareaRepository extends JpaRepository<Tarea, Long> {
     List<Tarea> findByProyectoId(Long proyectoId);
+
+    // Tareas de varios proyectos en un estado dado (para el "por aprobar" del gestor).
+    List<Tarea> findByProyectoIdInAndEstado(List<Long> proyectoIds, Tarea.Estado estado);
 }
