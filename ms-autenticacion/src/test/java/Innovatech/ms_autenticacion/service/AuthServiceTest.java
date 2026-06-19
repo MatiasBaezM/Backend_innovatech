@@ -178,7 +178,7 @@ class AuthServiceTest {
     // ── updateUser ────────────────────────────────────────────────────────────
 
     @Test
-    void testUpdateUser_exitoso() {
+    void testUpdateUser_adminCambiaRol_exitoso() {
         Usuario existente = buildUsuario(1L, "11.111.111-1", "Juan", "$hash", "COLABORADOR");
         Usuario datos = buildUsuario(null, "11.111.111-1", "Juan Actualizado", null, "GESTOR_PROYECTOS");
         Usuario actualizado = buildUsuario(1L, "11.111.111-1", "Juan Actualizado", "$hash", "GESTOR_PROYECTOS");
@@ -186,12 +186,57 @@ class AuthServiceTest {
         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(existente));
         when(usuarioRepository.save(any(Usuario.class))).thenReturn(actualizado);
 
-        Usuario resultado = authService.updateUser(1L, datos);
+        // caller = ADMINISTRADOR (id 99) editando a otro usuario
+        Usuario resultado = authService.updateUser(1L, datos, 99L, "ADMINISTRADOR");
 
         assertNotNull(resultado);
         assertEquals("Juan Actualizado", resultado.getNombre());
         assertEquals("GESTOR_PROYECTOS", resultado.getRol());
         verify(usuarioRepository, times(1)).save(any(Usuario.class));
+    }
+
+    @Test
+    void testUpdateUser_cambioClavePropia_soloClave_noBorraOtrosCampos() {
+        Usuario existente = buildUsuario(1L, "11.111.111-1", "Juan", "$hashViejo", "COLABORADOR");
+        // El frontend de cambio de clave envia SOLO la clave
+        Usuario datos = new Usuario();
+        datos.setClave("nuevaClave");
+
+        when(usuarioRepository.findById(1L)).thenReturn(Optional.of(existente));
+        when(passwordEncoder.encode("nuevaClave")).thenReturn("$hashNuevo");
+        when(usuarioRepository.save(any(Usuario.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        // caller = el mismo COLABORADOR (id 1) cambiando su propia clave
+        Usuario resultado = authService.updateUser(1L, datos, 1L, "COLABORADOR");
+
+        assertEquals("Juan", resultado.getNombre());          // intacto
+        assertEquals("11.111.111-1", resultado.getRut());     // intacto
+        assertEquals("COLABORADOR", resultado.getRol());      // intacto
+        assertEquals("$hashNuevo", resultado.getClave());     // actualizado
+    }
+
+    @Test
+    void testUpdateUser_noAdminEditaOtroUsuario_lanzaSecurityException() {
+        Usuario datos = new Usuario();
+        datos.setClave("hack");
+
+        // caller = COLABORADOR (id 5) intentando editar al usuario 1
+        assertThrows(SecurityException.class,
+                () -> authService.updateUser(1L, datos, 5L, "COLABORADOR"));
+        verify(usuarioRepository, never()).save(any());
+    }
+
+    @Test
+    void testUpdateUser_noAdminIntentaCambiarRol_lanzaSecurityException() {
+        Usuario existente = buildUsuario(1L, "11.111.111-1", "Juan", "$hash", "COLABORADOR");
+        Usuario datos = buildUsuario(null, null, null, null, "ADMINISTRADOR"); // auto-promocion
+
+        when(usuarioRepository.findById(1L)).thenReturn(Optional.of(existente));
+
+        // caller = el propio COLABORADOR (id 1) intentando subirse a ADMINISTRADOR
+        assertThrows(SecurityException.class,
+                () -> authService.updateUser(1L, datos, 1L, "COLABORADOR"));
+        verify(usuarioRepository, never()).save(any());
     }
 
     @Test
@@ -201,7 +246,8 @@ class AuthServiceTest {
 
         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(existente));
 
-        assertThrows(RuntimeException.class, () -> authService.updateUser(1L, datos));
+        assertThrows(RuntimeException.class,
+                () -> authService.updateUser(1L, datos, 99L, "ADMINISTRADOR"));
         verify(usuarioRepository, never()).save(any());
     }
 
@@ -210,7 +256,8 @@ class AuthServiceTest {
         when(usuarioRepository.findById(99L)).thenReturn(Optional.empty());
         Usuario datos = buildUsuario(null, "11.111.111-1", "Juan", null, "COLABORADOR");
 
-        assertThrows(RuntimeException.class, () -> authService.updateUser(99L, datos));
+        assertThrows(RuntimeException.class,
+                () -> authService.updateUser(99L, datos, 99L, "ADMINISTRADOR"));
     }
 
     // ── deleteUser ────────────────────────────────────────────────────────────

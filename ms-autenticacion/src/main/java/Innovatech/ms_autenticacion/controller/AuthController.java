@@ -8,6 +8,7 @@ import Innovatech.ms_autenticacion.model.Usuario;
 import Innovatech.ms_autenticacion.security.JwtUtil;
 import Innovatech.ms_autenticacion.service.AuthService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -80,10 +81,16 @@ public class AuthController {
     }
 
     @PutMapping("/users/{id}")
-    public ResponseEntity<Usuario> updateUser(@PathVariable Long id, @RequestBody Usuario usuario) {
+    public ResponseEntity<Usuario> updateUser(@PathVariable Long id, @RequestBody Usuario usuario,
+                                              @RequestHeader("Authorization") String authHeader) {
         try {
-            Usuario updatedUser = authService.updateUser(id, usuario);
+            String token = authHeader.substring(7); // quita "Bearer "
+            Long callerId = jwtUtil.extractUserId(token);
+            String callerRol = jwtUtil.extractRol(token);
+            Usuario updatedUser = authService.updateUser(id, usuario, callerId, callerRol);
             return ResponseEntity.ok(updatedUser);
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }

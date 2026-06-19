@@ -101,14 +101,40 @@ public class AuthService {
         return usuario;
     }
 
-    public Usuario updateUser(Long id, Usuario userDetails) {
+    /**
+     * Actualiza un usuario aplicando un update PARCIAL: solo se modifican los
+     * campos presentes en la peticion (los ausentes quedan intactos). Asi el
+     * cambio de clave self-service puede enviar unicamente {clave} sin borrar
+     * nombre/rut/correo.
+     *
+     * Autorizacion:
+     *  - Un no-ADMINISTRADOR solo puede modificar su PROPIO registro y NO puede
+     *    cambiar el rol (evita IDOR y escalada de privilegios).
+     *  - Un ADMINISTRADOR puede modificar cualquier usuario, incluido el rol.
+     */
+    public Usuario updateUser(Long id, Usuario userDetails, Long callerId, String callerRol) {
+        boolean isAdmin = "ADMINISTRADOR".equals(callerRol);
+
+        if (!isAdmin && !id.equals(callerId)) {
+            throw new SecurityException("No autorizado para modificar otro usuario");
+        }
+
         Usuario user = usuarioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        user.setNombre(userDetails.getNombre());
-        user.setRut(userDetails.getRut());
-        user.setCorreo(userDetails.getCorreo());
+        if (userDetails.getNombre() != null && !userDetails.getNombre().isBlank()) {
+            user.setNombre(userDetails.getNombre());
+        }
+        if (userDetails.getRut() != null && !userDetails.getRut().isBlank()) {
+            user.setRut(userDetails.getRut());
+        }
+        if (userDetails.getCorreo() != null) {
+            user.setCorreo(userDetails.getCorreo());
+        }
         if (userDetails.getRol() != null && !userDetails.getRol().isBlank()) {
+            if (!isAdmin) {
+                throw new SecurityException("No autorizado para cambiar el rol");
+            }
             if (!ROLES_VALIDOS.contains(userDetails.getRol())) {
                 throw new RuntimeException("Rol inválido: " + userDetails.getRol());
             }

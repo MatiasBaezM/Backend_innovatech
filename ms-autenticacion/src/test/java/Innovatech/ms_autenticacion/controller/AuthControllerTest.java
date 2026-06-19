@@ -28,6 +28,8 @@ import java.util.Set;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -165,9 +167,12 @@ class AuthControllerTest {
     @Test
     void testUpdateUser_exitoso() throws Exception {
         Usuario datos = buildUsuario(1L, "11.111.111-1", "Juan Actualizado", "GESTOR_PROYECTOS");
-        Mockito.when(authService.updateUser(eq(1L), any(Usuario.class))).thenReturn(datos);
+        Mockito.when(jwtUtil.extractUserId(anyString())).thenReturn(99L);
+        Mockito.when(jwtUtil.extractRol(anyString())).thenReturn("ADMINISTRADOR");
+        Mockito.when(authService.updateUser(eq(1L), any(Usuario.class), anyLong(), anyString())).thenReturn(datos);
 
         mockMvc.perform(put("/auth/users/1")
+                        .header("Authorization", "Bearer token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(datos)))
                 .andExpect(status().isOk())
@@ -178,13 +183,31 @@ class AuthControllerTest {
     @Test
     void testUpdateUser_noEncontrado() throws Exception {
         Usuario datos = buildUsuario(null, "99.999.999-9", "Ghost", "COLABORADOR");
-        Mockito.when(authService.updateUser(eq(99L), any(Usuario.class)))
+        Mockito.when(jwtUtil.extractUserId(anyString())).thenReturn(99L);
+        Mockito.when(jwtUtil.extractRol(anyString())).thenReturn("ADMINISTRADOR");
+        Mockito.when(authService.updateUser(eq(99L), any(Usuario.class), anyLong(), anyString()))
                 .thenThrow(new RuntimeException("Usuario no encontrado"));
 
         mockMvc.perform(put("/auth/users/99")
+                        .header("Authorization", "Bearer token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(datos)))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void testUpdateUser_sinPermisos_retorna403() throws Exception {
+        Usuario datos = buildUsuario(null, "11.111.111-1", "Juan", "ADMINISTRADOR");
+        Mockito.when(jwtUtil.extractUserId(anyString())).thenReturn(5L);
+        Mockito.when(jwtUtil.extractRol(anyString())).thenReturn("COLABORADOR");
+        Mockito.when(authService.updateUser(eq(1L), any(Usuario.class), anyLong(), anyString()))
+                .thenThrow(new SecurityException("No autorizado"));
+
+        mockMvc.perform(put("/auth/users/1")
+                        .header("Authorization", "Bearer token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(datos)))
+                .andExpect(status().isForbidden());
     }
 
     // ── DELETE /auth/users/{id} ───────────────────────────────────────────────
