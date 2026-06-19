@@ -1,194 +1,216 @@
 package Innovatech.ms_analiticas.service;
 
+import Innovatech.ms_analiticas.client.BackendClient;
+import Innovatech.ms_analiticas.dto.AsignacionView;
 import Innovatech.ms_analiticas.dto.CargaTrabajoDTO;
 import Innovatech.ms_analiticas.dto.CostoProyectoDTO;
 import Innovatech.ms_analiticas.dto.GrupoConteoDTO;
+import Innovatech.ms_analiticas.dto.ProyectoView;
 import Innovatech.ms_analiticas.dto.ResumenDTO;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.Query;
-import org.junit.jupiter.api.BeforeEach;
+import Innovatech.ms_analiticas.dto.TareaView;
+import Innovatech.ms_analiticas.dto.TrabajadorView;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class AnaliticasServiceTest {
 
-    @Mock private EntityManager em;
-    @Mock private Query mockQuery;
+    private static final String AUTH = "Bearer test-token";
 
-    private AnaliticasService analiticasService;
+    @Mock private BackendClient backend;
+    @InjectMocks private AnaliticasService analiticasService;
 
-    @BeforeEach
-    void setUp() {
-        analiticasService = new AnaliticasService();
-        ReflectionTestUtils.setField(analiticasService, "em", em);
-        // Todas las queries nativas pasan por el mismo mock
-        when(em.createNativeQuery(anyString())).thenReturn(mockQuery);
+    // ── helpers de construccion ───────────────────────────────────────────────
+
+    private ProyectoView proyecto(String estado) {
+        ProyectoView p = new ProyectoView();
+        p.setEstado(estado);
+        return p;
+    }
+
+    private TareaView tarea(String estado, String prioridad) {
+        TareaView t = new TareaView();
+        t.setEstado(estado);
+        t.setPrioridad(prioridad);
+        return t;
+    }
+
+    private TrabajadorView trabajador(Long id, String nombre, Double tarifa) {
+        TrabajadorView w = new TrabajadorView();
+        w.setId(id);
+        w.setNombre(nombre);
+        w.setTarifaHora(tarifa);
+        return w;
+    }
+
+    private AsignacionView asignacion(TrabajadorView t, Long proyectoId, Integer horas) {
+        AsignacionView a = new AsignacionView();
+        a.setTrabajador(t);
+        a.setProyectoId(proyectoId);
+        a.setHorasAsignadas(horas);
+        return a;
     }
 
     // ── getResumen ────────────────────────────────────────────────────────────
 
     @Test
     void testGetResumen() {
-        // 5 queries COUNT seguidas de 1 query de presupuesto (SUM)
-        when(mockQuery.getSingleResult())
-                .thenReturn(10L)   // totalProyectos
-                .thenReturn(4L)    // proyectosActivos
-                .thenReturn(8L)    // totalTrabajadores
-                .thenReturn(15L)   // tareasPendientes
-                .thenReturn(30L)   // tareasCompletadas
-                .thenReturn(5000.0); // presupuesto
+        TrabajadorView juan = trabajador(1L, "Juan", 1000.0);
+        TrabajadorView ana = trabajador(2L, "Ana", 2000.0);
 
-        ResumenDTO resultado = analiticasService.getResumen();
+        when(backend.getProyectos(AUTH)).thenReturn(List.of(
+                proyecto("EN_PROGRESO"), proyecto("EN_PROGRESO"), proyecto("FINALIZADO")));
+        when(backend.getTareas(AUTH)).thenReturn(List.of(
+                tarea("POR_HACER", "ALTA"), tarea("COMPLETADO", "BAJA"), tarea("COMPLETADO", "MEDIA")));
+        when(backend.getTrabajadores(AUTH)).thenReturn(List.of(juan, ana));
+        when(backend.getAsignaciones(AUTH)).thenReturn(List.of(
+                asignacion(juan, 1L, 10),   // 10 * 1000 = 10000
+                asignacion(ana, 2L, 5)));   //  5 * 2000 = 10000
 
-        assertNotNull(resultado);
-        assertEquals(10L, resultado.getTotalProyectos());
-        assertEquals(4L, resultado.getProyectosActivos());
-        assertEquals(8L, resultado.getTotalTrabajadores());
-        assertEquals(15L, resultado.getTareasPendientes());
-        assertEquals(30L, resultado.getTareasCompletadas());
-        assertEquals(5000.0, resultado.getPresupuestoTotal());
-        verify(em, times(6)).createNativeQuery(anyString());
+        ResumenDTO r = analiticasService.getResumen(AUTH);
+
+        assertEquals(3L, r.getTotalProyectos());
+        assertEquals(2L, r.getProyectosActivos());
+        assertEquals(2L, r.getTotalTrabajadores());
+        assertEquals(1L, r.getTareasPendientes());
+        assertEquals(2L, r.getTareasCompletadas());
+        assertEquals(20000.0, r.getPresupuestoTotal());
+    }
+
+    @Test
+    void testGetResumen_ignoraAsignacionSinTarifa() {
+        TrabajadorView sinTarifa = trabajador(1L, "Juan", null);
+        when(backend.getProyectos(AUTH)).thenReturn(List.of());
+        when(backend.getTareas(AUTH)).thenReturn(List.of());
+        when(backend.getTrabajadores(AUTH)).thenReturn(List.of(sinTarifa));
+        when(backend.getAsignaciones(AUTH)).thenReturn(List.of(asignacion(sinTarifa, 1L, 10)));
+
+        ResumenDTO r = analiticasService.getResumen(AUTH);
+
+        assertEquals(0.0, r.getPresupuestoTotal());
     }
 
     // ── getProyectosPorEstado ─────────────────────────────────────────────────
 
     @Test
     void testGetProyectosPorEstado() {
-        List<Object[]> rows = Arrays.asList(
-                new Object[]{"INICIO", 2L},
-                new Object[]{"EN_PROGRESO", 5L},
-                new Object[]{"FINALIZADO", 3L}
-        );
-        when(mockQuery.getResultList()).thenReturn(rows);
+        when(backend.getProyectos(AUTH)).thenReturn(List.of(
+                proyecto("INICIO"), proyecto("INICIO"),
+                proyecto("EN_PROGRESO"), proyecto("EN_PROGRESO"), proyecto("EN_PROGRESO"),
+                proyecto("FINALIZADO")));
 
-        List<GrupoConteoDTO> resultado = analiticasService.getProyectosPorEstado();
+        Map<String, Long> porEstado = analiticasService.getProyectosPorEstado(AUTH).stream()
+                .collect(Collectors.toMap(GrupoConteoDTO::getLabel, GrupoConteoDTO::getCantidad));
 
-        assertEquals(3, resultado.size());
-        assertEquals("INICIO", resultado.get(0).getLabel());
-        assertEquals(2L, resultado.get(0).getCantidad());
-        assertEquals("EN_PROGRESO", resultado.get(1).getLabel());
-        assertEquals(5L, resultado.get(1).getCantidad());
-        assertEquals("FINALIZADO", resultado.get(2).getLabel());
-        verify(em, times(1)).createNativeQuery(anyString());
+        assertEquals(3, porEstado.size());
+        assertEquals(2L, porEstado.get("INICIO"));
+        assertEquals(3L, porEstado.get("EN_PROGRESO"));
+        assertEquals(1L, porEstado.get("FINALIZADO"));
     }
 
     @Test
     void testGetProyectosPorEstado_sinDatos() {
-        when(mockQuery.getResultList()).thenReturn(List.of());
-
-        List<GrupoConteoDTO> resultado = analiticasService.getProyectosPorEstado();
-
-        assertTrue(resultado.isEmpty());
+        when(backend.getProyectos(AUTH)).thenReturn(List.of());
+        assertTrue(analiticasService.getProyectosPorEstado(AUTH).isEmpty());
     }
 
-    // ── getTareasPorPrioridad ─────────────────────────────────────────────────
+    // ── getTareasPorPrioridad / getTareasPorEstado ────────────────────────────
 
     @Test
     void testGetTareasPorPrioridad() {
-        List<Object[]> rows = Arrays.asList(
-                new Object[]{"ALTA", 10L},
-                new Object[]{"MEDIA", 25L},
-                new Object[]{"BAJA", 8L}
-        );
-        when(mockQuery.getResultList()).thenReturn(rows);
+        when(backend.getTareas(AUTH)).thenReturn(List.of(
+                tarea("POR_HACER", "ALTA"), tarea("COMPLETADO", "ALTA"), tarea("EN_PROGRESO", "MEDIA")));
 
-        List<GrupoConteoDTO> resultado = analiticasService.getTareasPorPrioridad();
+        Map<String, Long> porPrioridad = analiticasService.getTareasPorPrioridad(AUTH).stream()
+                .collect(Collectors.toMap(GrupoConteoDTO::getLabel, GrupoConteoDTO::getCantidad));
 
-        assertEquals(3, resultado.size());
-        assertEquals("ALTA", resultado.get(0).getLabel());
-        assertEquals(10L, resultado.get(0).getCantidad());
-        assertEquals("MEDIA", resultado.get(1).getLabel());
-        assertEquals(25L, resultado.get(1).getCantidad());
-        verify(em, times(1)).createNativeQuery(anyString());
+        assertEquals(2L, porPrioridad.get("ALTA"));
+        assertEquals(1L, porPrioridad.get("MEDIA"));
     }
-
-    // ── getTareasPorEstado ────────────────────────────────────────────────────
 
     @Test
     void testGetTareasPorEstado() {
-        List<Object[]> rows = Arrays.asList(
-                new Object[]{"POR_HACER", 5L},
-                new Object[]{"EN_PROGRESO", 12L},
-                new Object[]{"COMPLETADO", 8L},
-                new Object[]{"REVISADO", 20L}
-        );
-        when(mockQuery.getResultList()).thenReturn(rows);
+        when(backend.getTareas(AUTH)).thenReturn(List.of(
+                tarea("POR_HACER", "ALTA"), tarea("POR_HACER", "BAJA"), tarea("REVISADO", "MEDIA")));
 
-        List<GrupoConteoDTO> resultado = analiticasService.getTareasPorEstado();
+        Map<String, Long> porEstado = analiticasService.getTareasPorEstado(AUTH).stream()
+                .collect(Collectors.toMap(GrupoConteoDTO::getLabel, GrupoConteoDTO::getCantidad));
 
-        assertEquals(4, resultado.size());
-        assertEquals("REVISADO", resultado.get(3).getLabel());
-        assertEquals(20L, resultado.get(3).getCantidad());
-        verify(em, times(1)).createNativeQuery(anyString());
+        assertEquals(2L, porEstado.get("POR_HACER"));
+        assertEquals(1L, porEstado.get("REVISADO"));
     }
 
     // ── getCargaTrabajo ───────────────────────────────────────────────────────
 
     @Test
-    void testGetCargaTrabajo() {
-        List<Object[]> rows = Arrays.asList(
-                new Object[]{"Juan Pérez", 40L},
-                new Object[]{"María Silva", 32L}
-        );
-        when(mockQuery.getResultList()).thenReturn(rows);
+    void testGetCargaTrabajo_ordenadoDescYTop5() {
+        TrabajadorView juan = trabajador(1L, "Juan", 1000.0);
+        TrabajadorView ana = trabajador(2L, "Ana", 1000.0);
+        when(backend.getAsignaciones(AUTH)).thenReturn(List.of(
+                asignacion(juan, 1L, 10), asignacion(juan, 2L, 30),  // Juan = 40
+                asignacion(ana, 1L, 32)));                            // Ana = 32
 
-        List<CargaTrabajoDTO> resultado = analiticasService.getCargaTrabajo();
+        List<CargaTrabajoDTO> carga = analiticasService.getCargaTrabajo(AUTH);
 
-        assertEquals(2, resultado.size());
-        assertEquals("Juan Pérez", resultado.get(0).getNombre());
-        assertEquals(40L, resultado.get(0).getTotalHoras());
-        assertEquals("María Silva", resultado.get(1).getNombre());
-        assertEquals(32L, resultado.get(1).getTotalHoras());
-        verify(em, times(1)).createNativeQuery(anyString());
+        assertEquals(2, carga.size());
+        assertEquals("Juan", carga.get(0).getNombre());
+        assertEquals(40L, carga.get(0).getTotalHoras());
+        assertEquals("Ana", carga.get(1).getNombre());
+        assertEquals(32L, carga.get(1).getTotalHoras());
     }
 
     @Test
     void testGetCargaTrabajo_sinAsignaciones() {
-        when(mockQuery.getResultList()).thenReturn(List.of());
-
-        List<CargaTrabajoDTO> resultado = analiticasService.getCargaTrabajo();
-
-        assertTrue(resultado.isEmpty());
+        when(backend.getAsignaciones(AUTH)).thenReturn(List.of());
+        assertTrue(analiticasService.getCargaTrabajo(AUTH).isEmpty());
     }
 
     // ── getCostosProyectos ────────────────────────────────────────────────────
 
     @Test
-    void testGetCostosProyectos() {
-        List<Object[]> rows = Arrays.asList(
-                new Object[]{1L, 12500.0},
-                new Object[]{2L, 8000.0},
-                new Object[]{3L, 3200.0}
-        );
-        when(mockQuery.getResultList()).thenReturn(rows);
+    void testGetCostosProyectos_ordenadoDesc() {
+        TrabajadorView juan = trabajador(1L, "Juan", 1000.0);
+        TrabajadorView ana = trabajador(2L, "Ana", 2000.0);
+        when(backend.getAsignaciones(AUTH)).thenReturn(List.of(
+                asignacion(juan, 1L, 5),    // proyecto 1: 5000
+                asignacion(ana, 2L, 10)));  // proyecto 2: 20000
 
-        List<CostoProyectoDTO> resultado = analiticasService.getCostosProyectos();
+        List<CostoProyectoDTO> costos = analiticasService.getCostosProyectos(AUTH);
 
-        assertEquals(3, resultado.size());
-        assertEquals(1L, resultado.get(0).getProyectoId());
-        assertEquals(12500.0, resultado.get(0).getCostoEstimado());
-        assertEquals(2L, resultado.get(1).getProyectoId());
-        assertEquals(8000.0, resultado.get(1).getCostoEstimado());
-        verify(em, times(1)).createNativeQuery(anyString());
+        assertEquals(2, costos.size());
+        assertEquals(2L, costos.get(0).getProyectoId());
+        assertEquals(20000.0, costos.get(0).getCostoEstimado());
+        assertEquals(1L, costos.get(1).getProyectoId());
+        assertEquals(5000.0, costos.get(1).getCostoEstimado());
     }
 
     @Test
     void testGetCostosProyectos_sinDatos() {
-        when(mockQuery.getResultList()).thenReturn(List.of());
+        when(backend.getAsignaciones(AUTH)).thenReturn(List.of());
+        assertTrue(analiticasService.getCostosProyectos(AUTH).isEmpty());
+    }
 
-        List<CostoProyectoDTO> resultado = analiticasService.getCostosProyectos();
+    @Test
+    void testGetCostosProyectos_sumaVariasAsignacionesDelMismoProyecto() {
+        TrabajadorView juan = trabajador(1L, "Juan", 1000.0);
+        TrabajadorView ana = trabajador(2L, "Ana", 1000.0);
+        lenient().when(backend.getAsignaciones(AUTH)).thenReturn(List.of(
+                asignacion(juan, 1L, 5), asignacion(ana, 1L, 3)));  // proyecto 1: 8000
 
-        assertTrue(resultado.isEmpty());
+        List<CostoProyectoDTO> costos = analiticasService.getCostosProyectos(AUTH);
+
+        assertEquals(1, costos.size());
+        assertEquals(8000.0, costos.get(0).getCostoEstimado());
     }
 }

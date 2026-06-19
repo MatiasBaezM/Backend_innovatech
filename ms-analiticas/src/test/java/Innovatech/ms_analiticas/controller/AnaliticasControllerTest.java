@@ -20,6 +20,7 @@ import java.util.Arrays;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -30,6 +31,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 class AnaliticasControllerTest {
 
+    private static final String AUTH = "Bearer test-token";
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -37,7 +40,7 @@ class AnaliticasControllerTest {
     private AnaliticasService analiticasService;
 
     @MockBean
-    private JwtUtil jwtUtil;
+    private JwtUtil jwtUtil; // requerido por JwtAuthenticationFilter (@Component)
 
     @Test
     void testGetResumen() throws Exception {
@@ -48,9 +51,9 @@ class AnaliticasControllerTest {
         resumen.setTareasPendientes(15L);
         resumen.setTareasCompletadas(30L);
         resumen.setPresupuestoTotal(5000.0);
-        Mockito.when(analiticasService.getResumen()).thenReturn(resumen);
+        Mockito.when(analiticasService.getResumen(anyString())).thenReturn(resumen);
 
-        mockMvc.perform(get("/api/analiticas/resumen"))
+        mockMvc.perform(get("/api/analiticas/resumen").header("Authorization", AUTH))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalProyectos").value(10L))
                 .andExpect(jsonPath("$.presupuestoTotal").value(5000.0));
@@ -58,12 +61,12 @@ class AnaliticasControllerTest {
 
     @Test
     void testGetProyectosPorEstado() throws Exception {
-        Mockito.when(analiticasService.getProyectosPorEstado()).thenReturn(Arrays.asList(
+        Mockito.when(analiticasService.getProyectosPorEstado(anyString())).thenReturn(Arrays.asList(
                 new GrupoConteoDTO("INICIO", 2L),
                 new GrupoConteoDTO("EN_PROGRESO", 5L)
         ));
 
-        mockMvc.perform(get("/api/analiticas/proyectos"))
+        mockMvc.perform(get("/api/analiticas/proyectos").header("Authorization", AUTH))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].label", is("INICIO")));
@@ -71,12 +74,12 @@ class AnaliticasControllerTest {
 
     @Test
     void testGetTareasPorPrioridad() throws Exception {
-        Mockito.when(analiticasService.getTareasPorPrioridad()).thenReturn(Arrays.asList(
+        Mockito.when(analiticasService.getTareasPorPrioridad(anyString())).thenReturn(Arrays.asList(
                 new GrupoConteoDTO("ALTA", 10L),
                 new GrupoConteoDTO("MEDIA", 25L)
         ));
 
-        mockMvc.perform(get("/api/analiticas/tareas/prioridad"))
+        mockMvc.perform(get("/api/analiticas/tareas/prioridad").header("Authorization", AUTH))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[1].label", is("MEDIA")));
@@ -84,24 +87,24 @@ class AnaliticasControllerTest {
 
     @Test
     void testGetTareasPorEstado() throws Exception {
-        Mockito.when(analiticasService.getTareasPorEstado()).thenReturn(Arrays.asList(
+        Mockito.when(analiticasService.getTareasPorEstado(anyString())).thenReturn(Arrays.asList(
                 new GrupoConteoDTO("POR_HACER", 5L),
                 new GrupoConteoDTO("REVISADO", 20L)
         ));
 
-        mockMvc.perform(get("/api/analiticas/tareas/estado"))
+        mockMvc.perform(get("/api/analiticas/tareas/estado").header("Authorization", AUTH))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)));
     }
 
     @Test
     void testGetCargaTrabajo() throws Exception {
-        Mockito.when(analiticasService.getCargaTrabajo()).thenReturn(Arrays.asList(
+        Mockito.when(analiticasService.getCargaTrabajo(anyString())).thenReturn(Arrays.asList(
                 new CargaTrabajoDTO("Juan Pérez", 40L),
                 new CargaTrabajoDTO("María Silva", 32L)
         ));
 
-        mockMvc.perform(get("/api/analiticas/carga-trabajo"))
+        mockMvc.perform(get("/api/analiticas/carga-trabajo").header("Authorization", AUTH))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].nombre", is("Juan Pérez")));
@@ -109,12 +112,12 @@ class AnaliticasControllerTest {
 
     @Test
     void testGetCostosProyectos() throws Exception {
-        Mockito.when(analiticasService.getCostosProyectos()).thenReturn(Arrays.asList(
+        Mockito.when(analiticasService.getCostosProyectos(anyString())).thenReturn(Arrays.asList(
                 new CostoProyectoDTO(1L, 12500.0),
                 new CostoProyectoDTO(2L, 8000.0)
         ));
 
-        mockMvc.perform(get("/api/analiticas/costos"))
+        mockMvc.perform(get("/api/analiticas/costos").header("Authorization", AUTH))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].costoEstimado").value(12500.0));
