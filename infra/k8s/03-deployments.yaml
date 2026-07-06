@@ -213,6 +213,53 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  name: ms-carta-gantt
+  namespace: innovatech
+  labels:
+    app: ms-carta-gantt
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ms-carta-gantt
+  template:
+    metadata:
+      labels:
+        app: ms-carta-gantt
+    spec:
+      containers:
+        - name: ms-carta-gantt
+          image: 794860266885.dkr.ecr.us-east-1.amazonaws.com/innovatech/ms-carta-gantt:latest
+          ports:
+            - containerPort: 8085
+          envFrom:
+            - configMapRef:
+                name: innovatech-config
+            - secretRef:
+                name: innovatech-secret
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8085
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8085
+            initialDelaySeconds: 60
+            periodSeconds: 15
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
   name: ms-api-gateway
   namespace: innovatech
   labels:

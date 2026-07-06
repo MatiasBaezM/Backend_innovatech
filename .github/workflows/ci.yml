@@ -19,6 +19,7 @@ jobs:
           - ms-recursos_colaboraciones
           - ms-gestion_proyectos
           - ms-analiticas
+          - ms-carta_gantt
 
     services:
       mysql:

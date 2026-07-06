@@ -46,6 +46,18 @@ spec:
     - port: 8084
       targetPort: 8084
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ms-carta-gantt
+  namespace: innovatech
+spec:
+  selector:
+    app: ms-carta-gantt
+  ports:
+    - port: 8085
+      targetPort: 8085
+---
 # LoadBalancer publico - punto de entrada del backend (ver FASE 5.4 de la guia)
 apiVersion: v1
 kind: Service

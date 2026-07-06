@@ -25,6 +25,8 @@ jobs:
             repo: innovatech/ms-gestion-proyectos
           - service: ms-analiticas
             repo: innovatech/ms-analiticas
+          - service: ms-carta_gantt
+            repo: innovatech/ms-carta-gantt
 
     steps:
       - name: Checkout
@@ -100,6 +102,7 @@ jobs:
             [ms-recursos-colaboraciones]=innovatech/ms-recursos-colaboraciones
             [ms-gestion-proyectos]=innovatech/ms-gestion-proyectos
             [ms-analiticas]=innovatech/ms-analiticas
+            [ms-carta-gantt]=innovatech/ms-carta-gantt
             [ms-api-gateway]=innovatech/ms-api-gateway
           )
           for deployment in "${!IMAGES[@]}"; do
@@ -109,6 +112,6 @@ jobs:
 
       - name: Wait for rollout
         run: |
-          for d in ms-autenticacion ms-recursos-colaboraciones ms-gestion-proyectos ms-analiticas ms-api-gateway; do
+          for d in ms-autenticacion ms-recursos-colaboraciones ms-gestion-proyectos ms-analiticas ms-carta-gantt ms-api-gateway; do
             kubectl rollout status "deployment/$d" -n "$NAMESPACE" --timeout=180s
           done

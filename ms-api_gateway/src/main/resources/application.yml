@@ -47,6 +47,16 @@ spring:
                 name: analiticasCircuitBreaker
                 fallbackUri: forward:/fallback
 
+        - id: carta-gantt-service
+          uri: ${GANTT_SERVICE_URL:http://localhost:8085}
+          predicates:
+            - Path=/api/gantt/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: ganttCircuitBreaker
+                fallbackUri: forward:/fallback
+
   main:
     web-application-type: reactive
 
@@ -68,6 +78,8 @@ resilience4j:
       proyectosCircuitBreaker:
         base-config: default
       analiticasCircuitBreaker:
+        base-config: default
+      ganttCircuitBreaker:
         base-config: default
   timelimiter:
     configs:
