@@ -72,6 +72,38 @@ class GanttServiceTest {
     }
 
     @Test
+    void getGanttProyecto_propagaFechasDeEntregaDelProyecto() {
+        ProyectoExternoDTO proyecto = new ProyectoExternoDTO();
+        proyecto.setId(7L);
+        proyecto.setNombre("Proyecto con fechas");
+        proyecto.setEstado("EN_PROGRESO");
+        proyecto.setFechaInicio("2026-07-05");
+        proyecto.setFechaFin("2026-08-20");
+
+        when(backendClient.getProyecto(any(), anyString())).thenReturn(proyecto);
+        when(backendClient.getTareas(any(), anyString())).thenReturn(List.of());
+
+        GanttProyectoDTO resultado = ganttService.getGanttProyecto(7L, "Bearer token");
+
+        // El eje de tiempo del calendario sale de las fechas del proyecto (las
+        // define el administrador al crear/editar) y deben reflejarse tal cual.
+        assertThat(resultado.fechaInicioProyecto()).isEqualTo("2026-07-05");
+        assertThat(resultado.fechaFinProyecto()).isEqualTo("2026-08-20");
+        assertThat(resultado.tareas()).isEmpty();
+    }
+
+    @Test
+    void getGanttProyecto_sinProyecto_dejaFechasEnNull() {
+        when(backendClient.getProyecto(any(), anyString())).thenThrow(new RestClientException("down"));
+        when(backendClient.getTareas(any(), anyString())).thenReturn(List.of());
+
+        GanttProyectoDTO resultado = ganttService.getGanttProyecto(9L, "Bearer token");
+
+        assertThat(resultado.fechaInicioProyecto()).isNull();
+        assertThat(resultado.fechaFinProyecto()).isNull();
+    }
+
+    @Test
     void tareasConFechas_tienenOrdenCorrelativo() {
         GanttTareaDTO t1 = new GanttTareaDTO(1L, "T1", "EN_PROGRESO", "ALTA",
                 "Juan", "2026-07-01", "2026-07-10", 8, 1);

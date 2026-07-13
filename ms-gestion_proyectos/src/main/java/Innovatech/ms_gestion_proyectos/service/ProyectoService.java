@@ -49,6 +49,7 @@ public class ProyectoService {
             proyecto.setDescripcion(proyectoDetails.getDescripcion());
             proyecto.setEstado(proyectoDetails.getEstado());
             proyecto.setFechaInicio(proyectoDetails.getFechaInicio());
+            proyecto.setFechaFin(proyectoDetails.getFechaFin());
             proyecto.setRutResponsable(proyectoDetails.getRutResponsable());
             return proyectoRepository.save(proyecto);
         }).orElseThrow(() -> new RuntimeException("Proyecto no encontrado"));

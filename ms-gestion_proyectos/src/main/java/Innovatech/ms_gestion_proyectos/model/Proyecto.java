@@ -31,7 +31,10 @@ public class Proyecto {
     private String nombre;
     private String descripcion;
     private String estado;
+    // Fechas de entrega del proyecto definidas por el administrador. Alimentan el
+    // eje de tiempo (calendario) de la carta Gantt: inicio y termino del proyecto.
     private LocalDate fechaInicio;
+    private LocalDate fechaFin;
 
     // Campo para asignar un usuario responsable (por su RUT)
     private String rutResponsable;
